@@ -11,9 +11,10 @@ const {User} = require('../../models')
 router.get('/', async (req, res) => {
     try {
         
-        const {params} = req
+        const {query} = req
     
-        const data = await User.findAll({...params, attributes: {
+        console.log(query)
+        const data = await User.findAll({where: {...query}, attributes: {
             exclude: ['username', 'password']
         }});
     
