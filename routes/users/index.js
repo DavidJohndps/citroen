@@ -1,17 +1,21 @@
 const {Router} = require('express')
 const router = Router();
+const path = require('path')
+const fs = require('fs').promises;
 
 const bcrypt = require('bcryptjs')
 const {authenticate, upload} = require('../../middleware')
 
-const User = require('../../models/user')
+const {User} = require('../../models')
 
 router.get('/', async (req, res) => {
     try {
         
         const {params} = req
     
-        const data = await User.findAll({...params});
+        const data = await User.findAll({...params, attributes: {
+            exclude: ['username', 'password']
+        }});
     
         res.send({
             success: true,
@@ -32,7 +36,7 @@ router.post('/add', authenticate, upload.single('profile_picture'), async (req, 
         const {role, password} = data
 
         // role 0: admin, role 1:head, role 2:staff
-        if (role > user.role) {
+        if (role <= user.role) {
             res.send({
                 success: false,
                 message: 'Anda tidak memiliki akses untuk membuat akun tersebut'
@@ -55,24 +59,24 @@ router.post('/add', authenticate, upload.single('profile_picture'), async (req, 
             message: 'Akun berhasil dibuat'
         })
     } catch (error) {
-        console.log({error})
+        console.log(error)
         res.send({
             success: false,
-            message: error.message
+            message: error.errors[0].message
         })
     }
 })
 
-router.patch('/edit', authenticate, upload.single('profile_picture', async (req, res) => {
+router.patch('/change', authenticate, upload.single('profile_picture'), async (req, res) => {
     try {
         const {body: data, user, file} = req
         const {role, id, password, ...rest} = data
 
         // role 0: admin, role 1:head, role 2:staff
-        if (role > user.role) {
+        if (role <= user.role) {
             res.send({
                 success: false,
-                message: 'Anda tidak memiliki akses untuk membuat akun tersebut'
+                message: 'Anda tidak memiliki akses untuk merubah role akun tersebut'
             }).status(401);
             return
         }
@@ -91,21 +95,16 @@ router.patch('/edit', authenticate, upload.single('profile_picture', async (req,
         })
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        await User.update({...rest, password: hashedPassword ,profile_picture: file.path}, {where: { id }})
+        await User.update({...rest, password: hashedPassword ,profile_picture: file.path, role}, {where: { id }})
 
-        const fullPath = path.join(__dirname, 'public/uploads', userData.profile_picture); // Construct the full file path
+        const fullPath = path.join(path.resolve(__dirname, '../../'), userData.profile_picture); // Construct the full file path
 
-        fs.unlink(fullPath, (err) => {
-            if (err) {
-            return res.status(500).json({ error: 'Error deleting file', details: err });
-            }
-
-            // res.json({ message: 'File deleted successfully' });
-        });
+        await fs.access(fullPath);
+        await fs.unlink(fullPath);
 
         res.send({
             success: true,
-            message: 'Akun berhasil dibuat'
+            message: 'Akun berhasil dirubah'
         })
     } catch (error) {
         console.log({error})
@@ -114,36 +113,31 @@ router.patch('/edit', authenticate, upload.single('profile_picture', async (req,
             message: error.message
         })
     }
-}))
+})
 
-router.delete('/delete', authenticate, async (req, res) => {
+router.delete('/remove', authenticate, async (req, res) => {
     try {
         const {body: data, user} = req
         const { id } = data
 
+        console.log({id})
         const userData = await User.findOne({
             where: {
                 id
             }
         })
 
-        if (user.role < userData.role) {
+        if (userData.role <= user.role) {
             res.send({
                 success: false,
-                message: 'Anda tidak memiliki akses untuk membuat akun tersebut'
+                message: 'Anda tidak memiliki akses untuk merubah role akun tersebut'
             }).status(401);
             return
         }
 
-        const fullPath = path.join(__dirname, 'public/uploads', userData.profile_picture); // Construct the full file path
+        const fullPath = path.join(path.resolve(__dirname, '../../'), userData.profile_picture); // Construct the full file path
 
-        fs.unlink(fullPath, (err) => {
-            if (err) {
-            return res.status(500).json({ error: 'Error deleting file', details: err });
-            }
-
-            // res.json({ message: 'File deleted successfully' });
-        });
+        await fs.unlink(fullPath);
 
         await User.destroy({
             where:{

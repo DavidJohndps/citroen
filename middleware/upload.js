@@ -12,6 +12,21 @@ const storage = multer.diskStorage({
 });
 
 // Create multer instance with storage configuration
-const upload = multer({ storage: storage });
+// Configure multer with file size limit and storage
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 2 * 1024 * 1024 // 2 MB
+  },
+  fileFilter: (req, file, cb) => {
+    // Optional: File type validation
+    const allowedTypes = ['image/jpeg', 'image/png'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type'));
+    }
+  }
+});
 
 module.exports = upload;
