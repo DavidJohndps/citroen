@@ -5,6 +5,14 @@ module.exports = (sequelize) => {
   class User extends Model {
     static associate(models) {
       // define association here
+      User.hasMany(models.Dealer, {
+        foreignKey: 'pic',
+        type: DataTypes.UUID
+      })
+      User.hasMany(models.Dealer, {
+        foreignKey: 'head',
+        type: DataTypes.UUID
+      })
     }
   }
 

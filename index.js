@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const app = express();
 require('dotenv').config();
 
@@ -12,6 +13,7 @@ const routes = require('./routes')
 app.use(cors());
 app.use(bodyParser.json());
 
+app.use(express.static(path.join(__dirname, 'public')));
 app.use('/api', routes)
 
 sequelize.authenticate()

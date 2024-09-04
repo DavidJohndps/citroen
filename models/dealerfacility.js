@@ -11,16 +11,30 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      DealerFacility.belongsTo(models.Dealer, {
+        foreignKey: 'dealerId',
+        type: DataTypes.UUID
+      })
+      DealerFacility.belongsTo(models.Facility, {
+        foreignKey: 'facilityId',
+        type: DataTypes.UUID
+      })
     }
   }
   DealerFacility.init({
     id: {
       type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true
+    },
+    dealerId: {
+      type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4
     },
-    name: {
-      type: DataTypes.STRING
-    },
+    facilityId: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4
+    }
   }, {
     sequelize,
     modelName: 'DealerFacility',

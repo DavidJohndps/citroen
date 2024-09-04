@@ -2,19 +2,14 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('CarGalleries', {
+    await queryInterface.createTable('Facilities', {
       id: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
       },
-      carId: {
-        type: Sequelize.UUID,
-        allowNull: null
-      },
-      galleryId: {
-        type: Sequelize.UUID,
-        allowNull: null
+      name: {
+        type: Sequelize.STRING
       },
       createdAt: {
         allowNull: false,
@@ -27,6 +22,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('CarGalleries');
+    await queryInterface.dropTable('Facilities');
   }
 };

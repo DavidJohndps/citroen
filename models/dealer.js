@@ -11,13 +11,68 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      Dealer.belongsToMany(models.Facility, {
+        through: 'DealerFacility',
+        foreignKey: 'dealerId',
+        sourceKey: 'id'
+      })
+      Dealer.hasMany(models.DealerFacility, {
+        foreignKey: {
+          name: 'dealerId'
+        }
+      })
+      Dealer.belongsTo(models.User, {
+        as: 'Customer Service',
+        foreignKey: {
+          name: 'pic'
+        }
+      })
+      Dealer.belongsTo(models.User, {
+        as: 'Dealer Head',
+        foreignKey: {
+          name: 'head'
+        }
+      })
+      Dealer.belongsTo(models.Province, {
+        as: 'Province',
+        foreignKey: 'provinceId'
+      })
+      Dealer.belongsTo(models.City, {
+        as: 'City',
+        foreignKey: 'cityId'
+      })
     }
   }
   Dealer.init({
-    name: DataTypes.STRING,
-    pic: DataTypes.STRING,
-    head: DataTypes.STRING,
-    phone_number: DataTypes.STRING
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true
+    },
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    pic: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    head: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    address: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    longitude: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    latitude: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
   }, {
     sequelize,
     modelName: 'Dealer',

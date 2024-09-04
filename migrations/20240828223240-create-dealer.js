@@ -4,26 +4,45 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('Dealers', {
       id: {
-        allowNull: false,
-        autoIncrement: true,
+        type: Sequelize.UUID,
+        defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
-        type: Sequelize.INTEGER
       },
       name: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: false
       },
       pic: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: false
       },
       head: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: false
       },
-      phone_number: {
-        type: Sequelize.STRING
+      address: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
+      longitude: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
+      latitude: {
+        type: Sequelize.STRING,
+        allowNull: false
       },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE
+      },
+      provinceId: {
+        type: Sequelize.INTEGER,
+        allowNull: false
+      },
+      cityId: {
+        type: Sequelize.INTEGER,
+        allowNull: false
       },
       updatedAt: {
         allowNull: false,
