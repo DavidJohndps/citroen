@@ -12,6 +12,10 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false
       },
+      workingHours: {
+        type: Sequelize.JSON,
+        allowNull: false
+      },
       pic: {
         type: Sequelize.STRING,
         allowNull: false
@@ -21,6 +25,10 @@ module.exports = {
         allowNull: false
       },
       address: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
+      mapLink: {
         type: Sequelize.STRING,
         allowNull: false
       },

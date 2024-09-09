@@ -81,7 +81,7 @@ router.get('/', async (req, res) => {
 router.post('/add', authenticate, async (req, res) => {
     try {
         const {body: data, user} = req
-        const {pic, head, facility, cars, provinceId, cityId, ...rest} = data
+        const {pic, head, facility, cars, provinceId, workingHours, cityId, ...rest} = data
 
         if (user.role !== '0') {
             return res.send({
@@ -175,7 +175,7 @@ router.post('/add', authenticate, async (req, res) => {
             })
         }
         
-        const dealer = await Dealer.create({...rest, pic, head, provinceId, cityId});
+        const dealer = await Dealer.create({...rest, pic, head, provinceId, cityId, workingHours: JSON.stringify(workingHours)});
         for (const facility of facilityData) {
             await DealerFacility.create({facilityId: facility.id, dealerId: dealer.id})
         }
@@ -199,7 +199,7 @@ router.post('/add', authenticate, async (req, res) => {
 router.patch('/change', authenticate, async (req, res) => {
     try {
         const {body: data, user} = req
-        const {id, pic, head, facility, cars, provinceId, cityId, ...rest} = data
+        const {id, pic, head, facility, cars, provinceId, cityId, workingHours, ...rest} = data
 
         if (user.role !== '0') {
             return res.send({
@@ -328,7 +328,7 @@ router.patch('/change', authenticate, async (req, res) => {
             })
         }
 
-        await Dealer.update({...rest, pic, head, provinceId, cityId}, {where: {id}});
+        await Dealer.update({...rest, pic, head, provinceId, cityId, workingHours: JSON.stringify(workingHours)}, {where: {id}});
 
         for (const dealerFacility of dealerData.Facilities) {
             const {DealerFacility: {id}} = dealerFacility

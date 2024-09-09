@@ -64,6 +64,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false
     },
+    workingHours: {
+      type: DataTypes.JSON,
+      allowNull: false
+    },
     pic: {
       type: DataTypes.STRING,
       allowNull: false
@@ -73,6 +77,10 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false
     },
     address: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    mapLink: {
       type: DataTypes.STRING,
       allowNull: false
     },
