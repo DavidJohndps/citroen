@@ -2,25 +2,22 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('CarGalleries', {
+    await queryInterface.createTable('CarDealers', {
       id: {
-        type: Sequelize.UUID,
-        defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
+        type: Sequelize.UUID,
+        defaultValue: Sequelize.UUIDV4
       },
       carId: {
         type: Sequelize.UUID,
-        allowNull: null
+        allowNull: false
       },
-      galleryId: {
+      dealerId: {
         type: Sequelize.UUID,
-        allowNull: null
+        allowNull: false
       },
-      type: {
-        type: Sequelize.ENUM,
-        values: ['One-Tone', 'Two-Tone'],
-        allowNull: false,
-        defaultValue: ['One-Tone']
+      price: {
+        type: Sequelize.STRING
       },
       createdAt: {
         allowNull: false,
@@ -33,6 +30,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('CarGalleries');
+    await queryInterface.dropTable('CarDealers');
   }
 };

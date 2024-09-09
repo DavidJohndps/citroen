@@ -50,7 +50,7 @@ router.get('/', async (req, res) => {
                     through: {
                         as: 'List Breakdown',
                         model: CarService,
-                        attributes: ['id','part']
+                        attributes: ['id','part', 'price']
                     }
                 }
             ]

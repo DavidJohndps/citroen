@@ -29,6 +29,15 @@ module.exports = (sequelize, DataTypes) => {
           name: 'carId'
         }
       })
+      Car.belongsToMany(models.Dealer, {
+        through: 'CarDealer',
+        foreignKey: 'carId',
+      })
+      Car.hasMany(models.CarDealer, {
+        foreignKey: {
+          name: 'carId'
+        }
+      })
     }
   }
   Car.init({

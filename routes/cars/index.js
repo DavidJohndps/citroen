@@ -6,7 +6,7 @@ const fs = require('fs').promises;
 const {authenticate, uploadGallery, upload} = require('../../middleware')
 
 const {Car, CarGallery, Gallery} = require('../../models');
-const { Op } = require('sequelize');
+const { Op, col } = require('sequelize');
 
 const checkElements = (array1, array2) => {
     let allFound = true;
@@ -48,7 +48,7 @@ router.get('/', async (req, res) => {
                     model: Gallery,
                     through: {
                         model: CarGallery,
-                        attributes: []
+                        attributes: ['type']
                     }
                 }
             ]
@@ -86,13 +86,20 @@ router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 
             }).status(403);
         }
 
+        // return res.send({
+        //     success: true,
+        //     message: 'In Debug Mode'
+        // })
+
         const car = await Car.create({...rest, img: file.path});
 
-        colors.split(',').map( async (x,index) => {
+        const parsed = JSON.parse(colors)
+
+        parsed.map(async (el, index) => {
+            const {name, category} = el
             const path = files[index].path
-            const gallery = await Gallery.create({name: x, path});
-            await CarGallery.create({carId: car.id, galleryId: gallery.id})
-            return {name: x, image: gallery}
+            const gallery = await Gallery.create({name, path});
+            await CarGallery.create({carId: car.id, galleryId: gallery.id, type: category})
         })
 
         res.send({
@@ -138,6 +145,13 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
             }
         })
 
+        if(!carData) {
+            return res.send({
+                success: false,
+                message: 'Mobil tidak ditemukan'
+            })
+        }
+
         const fullPath = path.join(path.resolve(__dirname, '../../'), carData.img); // Construct the full file path
 
         await fs.unlink(fullPath);
@@ -148,10 +162,13 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
 
         await Car.update({...payload}, {where: { id }})
 
-        colors.split(',').map( async (x,index) => {
+        const parsed = JSON.parse(colors)
+
+        parsed.map(async (el, index) => {
+            const {name, category} = el
             const path = files[index].path
-            const gallery = await Gallery.create({name: x, path})
-            await CarGallery.create({carId: id, galleryId: gallery.id})
+            const gallery = await Gallery.create({name, path})
+            await CarGallery.create({carId: id, galleryId: gallery.id, type: category})
         })
 
         res.send({

@@ -39,6 +39,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4
     },
+    type: {
+      type: DataTypes.ENUM,
+      values: ['One-Tone', 'Two-Tone'],
+      allowNull: false
+    }
   }, {
     sequelize,
     modelName: 'CarGallery',

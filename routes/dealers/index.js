@@ -3,8 +3,8 @@ const router = Router();
 
 const {authenticate, upload} = require('../../middleware')
 
-const {User, Dealer, Facility, DealerFacility, Province, City} = require('../../models');
-const { Op } = require('sequelize');
+const {User, Dealer, Facility, DealerFacility, Province, City, Car, CarDealer} = require('../../models');
+const { Op, where } = require('sequelize');
 
 router.get('/', async (req, res) => {
     try {
@@ -23,6 +23,18 @@ router.get('/', async (req, res) => {
                     }
                 },
                 {
+                    model: Car,
+                    as: 'Cars',
+                    attributes: {
+                        exclude: ['price']
+                    },
+                    through: {
+                        model: CarDealer,
+                        as: 'Dealer Price',
+                        attributes:['price']
+                    }
+                },
+                {
                     model: User,
                     as: 'Customer Service',
                     attributes: {
@@ -33,7 +45,7 @@ router.get('/', async (req, res) => {
                     model: User,
                     as: 'Dealer Head',
                     attributes: {
-                        exclude: ['username', 'password', 'role']
+                        exclude: ['id', 'password', 'role']
                     }
                 },
                 {
@@ -47,7 +59,7 @@ router.get('/', async (req, res) => {
                     model: City,
                     as: 'City',
                     attributes: {
-                        exclude: ['id']
+                        exclude: ['id', 'provinceId']
                     }
                 },
             ]
@@ -69,7 +81,7 @@ router.get('/', async (req, res) => {
 router.post('/add', authenticate, async (req, res) => {
     try {
         const {body: data, user} = req
-        const {pic, head, facility, provinceId, cityId, ...rest} = data
+        const {pic, head, facility, cars, provinceId, cityId, ...rest} = data
 
         if (user.role !== '0') {
             return res.send({
@@ -104,7 +116,7 @@ router.post('/add', authenticate, async (req, res) => {
             })
         }
 
-        const facilityData = await Facility.findOne({
+        const facilityData = await Facility.findAll({
             where: {
                 id: {
                     [Op.in]: facility
@@ -112,10 +124,27 @@ router.post('/add', authenticate, async (req, res) => {
             }
         })
 
-        if(!facilityData) {
+        if(facilityData.length === 0) {
             return res.send({
                 success: false,
                 message: 'Fasilitas tidak ditemukan'
+            })
+        }
+
+        const carIds = cars.map(x => x.id)
+
+        const carData = await Car.findAll({
+            where: {
+                id: {
+                    [Op.in]: carIds
+                }
+            }
+        })
+
+        if(carData.length === 0) {
+            return res.send({
+                success: false,
+                message: 'Mobil tidak ditemukan'
             })
         }
 
@@ -147,7 +176,12 @@ router.post('/add', authenticate, async (req, res) => {
         }
         
         const dealer = await Dealer.create({...rest, pic, head, provinceId, cityId});
-        await DealerFacility.create({facilityId: facilityData.id, dealerId: dealer.id})
+        for (const facility of facilityData) {
+            await DealerFacility.create({facilityId: facility.id, dealerId: dealer.id})
+        }
+        for (const car of cars) {
+            await CarDealer.create({carId: car.id, dealerId: dealer.id, price: car.price})
+        }
 
         res.send({
             success: true,
@@ -162,12 +196,11 @@ router.post('/add', authenticate, async (req, res) => {
     }
 })
 
-router.patch('/change', authenticate, upload.single('profile_picture'), async (req, res) => {
+router.patch('/change', authenticate, async (req, res) => {
     try {
-        const {body: data, user, file} = req
-        const {role, id, password, ...rest} = data
+        const {body: data, user} = req
+        const {id, pic, head, facility, cars, provinceId, cityId, ...rest} = data
 
-        // role 0: admin, role 1:head, role 2:staff
         if (user.role !== '0') {
             return res.send({
                 success: false,
@@ -175,30 +208,148 @@ router.patch('/change', authenticate, upload.single('profile_picture'), async (r
             }).status(401);
         }
 
-        if(!file) {
-            res.send({
+        if(!id) {
+            return res.send({
                 success: false,
-                message: 'Foto profil perlu ditambahkan'
-            }).status(403);
+                message: 'Dealer tidak ditemukan'
+            })
         }
 
-        const userData = await User.findOne({
+        const dealerData = await Dealer.findOne({
             where: {
                 id
+            },
+            include: [
+                {
+                    model: Facility,
+                    attributes: ['name'],
+                    through: {
+                        model: DealerFacility,
+                        attributes:['id']
+                    }
+                },
+                {
+                    model: Car,
+                    as: 'Cars',
+                    attributes: {
+                        exclude: ['price']
+                    },
+                    through: {
+                        model: CarDealer,
+                        as: 'Dealer Price',
+                        attributes:['id', 'price']
+                    }
+                },
+            ]
+        })
+
+        const picUser = await User.findOne({
+            where: {
+                id: pic
             }
         })
 
-        const hashedPassword = await bcrypt.hash(password, 10);
-        await User.update({...rest, password: hashedPassword ,profile_picture: file.path, role}, {where: { id }})
+        if(!picUser) {
+            return res.send({
+                success: false,
+                message: 'Akun PIC Tidak Ditemukan'
+            })
+        }
 
-        const fullPath = path.join(path.resolve(__dirname, '../../'), userData.profile_picture); // Construct the full file path
+        const headUser = await User.findOne({
+            where: {
+                id: head
+            }
+        })
 
-        await fs.access(fullPath);
-        await fs.unlink(fullPath);
+        if(!headUser) {
+            return res.send({
+                success: false,
+                message: 'Akun Head Tidak Ditemukan'
+            })
+        }
+
+        const facilityData = await Facility.findAll({
+            where: {
+                id: {
+                    [Op.in]: facility
+                }
+            }
+        })
+
+        if(facilityData.length === 0) {
+            return res.send({
+                success: false,
+                message: 'Fasilitas tidak ditemukan'
+            })
+        }
+
+        const carIds = cars.map(x => x.id)
+
+        const carData = await Car.findAll({
+            where: {
+                id: {
+                    [Op.in]: carIds
+                }
+            }
+        })
+
+        if(carData.length === 0) {
+            return res.send({
+                success: false,
+                message: 'Mobil tidak ditemukan'
+            })
+        }
+
+        const provinceData = await Province.findOne({
+            where: {
+                id: provinceId
+            }
+        })
+
+        if(!provinceData) {
+            return res.send({
+                success:false,
+                message: 'Provinsi tidak ditemukan'
+            })
+        }
+
+        const cityData = await City.findOne({
+            where: {
+                id: cityId,
+                provinceId
+            }
+        })
+
+        if(!cityData) {
+            return res.send({
+                success:false,
+                message: 'Provinsi/Kota tidak ditemukan'
+            })
+        }
+
+        await Dealer.update({...rest, pic, head, provinceId, cityId}, {where: {id}});
+
+        for (const dealerFacility of dealerData.Facilities) {
+            const {DealerFacility: {id}} = dealerFacility
+            await DealerFacility.destroy({where: {id}})
+        }
+        for (const facility of facilityData) {
+            await DealerFacility.create({facilityId: facility.id, dealerId: id})
+        }
+
+        for (const dealerCar of dealerData.Cars) {
+            const {id} = dealerCar['Dealer Price']
+            await CarDealer.destroy({where: {id}})
+        }
+
+        for (const car of cars) {
+            await CarDealer.create({carId: car.id, dealerId: id, price: car.price})
+        }
 
         res.send({
             success: true,
-            message: 'Akun berhasil dirubah'
+            message: 'Dealer berhasil dirubah'
         })
     } catch (error) {
         console.log({error})
@@ -214,10 +365,32 @@ router.delete('/remove', authenticate, async (req, res) => {
         const {body: data, user} = req
         const { id } = data
 
-        const userData = await User.findOne({
+        const dealerData = await Dealer.findOne({
             where: {
                 id
-            }
+            },
+            include: [
+                {
+                    model: Facility,
+                    attributes: ['name'],
+                    through: {
+                        model: DealerFacility,
+                        attributes:['id']
+                    }
+                },
+                {
+                    model: Car,
+                    as: 'Cars',
+                    attributes: {
+                        exclude: ['price']
+                    },
+                    through: {
+                        model: CarDealer,
+                        as: 'Dealer Price',
+                        attributes:['id', 'price']
+                    }
+                },
+            ]
         })
 
         if (user.role !== '0') {
@@ -227,11 +400,21 @@ router.delete('/remove', authenticate, async (req, res) => {
             }).status(401);
         }
 
-        const fullPath = path.join(path.resolve(__dirname, '../../'), userData.profile_picture); // Construct the full file path
+        for (const dealerFacility of dealerData.Facilities) {
+            const {DealerFacility: {id}} = dealerFacility
+            await DealerFacility.destroy({where: {id}})
+        }
 
-        await fs.unlink(fullPath);
+        for (const dealerCar of dealerData.Cars) {
+            const {id} = dealerCar['Dealer Price']
+            await CarDealer.destroy({where: {id}})
+        }
 
-        await User.destroy({
+        // const fullPath = path.join(path.resolve(__dirname, '../../'), userData.profile_picture); // Construct the full file path
+
+        // await fs.unlink(fullPath);
+
+        await Dealer.destroy({
             where:{
                 id
             }
@@ -239,7 +422,7 @@ router.delete('/remove', authenticate, async (req, res) => {
 
         res.send({
             success: true,
-            message: 'Akun berhasil dihapus'
+            message: 'Dealer berhasil dihapus'
         })
     } catch (error) {
         console.log({error})

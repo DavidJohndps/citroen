@@ -63,7 +63,7 @@ router.post('/add', authenticate, upload.single('profile_picture'), async (req, 
         console.log(error)
         res.send({
             success: false,
-            message: error.errors[0].message
+            message: error.message
         })
     }
 })
