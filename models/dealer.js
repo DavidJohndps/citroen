@@ -92,6 +92,9 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false
     },
+    img: {
+      type: DataTypes.STRING
+    }
   }, {
     sequelize,
     modelName: 'Dealer',
