@@ -7,9 +7,13 @@ const {Facility} = require('../../models')
 router.get('/', async (req, res) => {
     try {
         
-        const {query} = req
+        const {query: {limit, offset, ...rest}} = req
     
-        const data = await Facility.findAll({where: {...query}});
+        const data = await Facility.findAll({
+            limit: parseInt(limit) || 10,
+            offset: parseInt(offset) || 0,
+            ...rest,
+        });
     
         res.send({
             success: true,

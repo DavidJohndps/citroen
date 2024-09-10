@@ -1,4 +1,5 @@
 const {Router} = require('express');
+const profileRoutes = require('./profile');
 const userRoutes = require('./users');
 const carRoutes = require('./cars');
 const dealerRoutes = require('./dealers');
@@ -10,6 +11,7 @@ const authenticate = require('./authenticate');
 const router = Router();
 
 router.use('/authenticate', authenticate);
+router.use('/profile', profileRoutes);
 router.use('/users', userRoutes);
 router.use('/cars', carRoutes);
 router.use('/dealers', dealerRoutes);

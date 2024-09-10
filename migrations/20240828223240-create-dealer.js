@@ -22,7 +22,7 @@ module.exports = {
       },
       head: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: true
       },
       address: {
         type: Sequelize.STRING,

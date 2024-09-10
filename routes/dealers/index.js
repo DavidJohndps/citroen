@@ -9,10 +9,12 @@ const { Op, where } = require('sequelize');
 router.get('/', async (req, res) => {
     try {
         
-        const {query} = req
+        const {query: {limit, offset, ...rest}} = req
     
         const data = await Dealer.findAll({
-            where: {...query},
+            limit: parseInt(limit) || 10,
+            offset: parseInt(offset) || 0,
+            ...rest,
             include: [
                 {
                     model: Facility,
@@ -78,9 +80,9 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.post('/add', authenticate, async (req, res) => {
+router.post('/add', authenticate, upload.single('img'),async (req, res) => {
     try {
-        const {body: data, user} = req
+        const {body: data, user, file} = req
         const {pic, head, facility, cars, provinceId, workingHours, cityId, ...rest} = data
 
         if (user.role !== '0') {
@@ -174,8 +176,15 @@ router.post('/add', authenticate, async (req, res) => {
                 message: 'Provinsi/Kota tidak ditemukan'
             })
         }
+
+        if (!file) {
+            return res.send({
+                success: false,
+                message: 'Foto Dealer perlu ditambahkan'
+            })
+        }
         
-        const dealer = await Dealer.create({...rest, pic, head, provinceId, cityId, workingHours: JSON.stringify(workingHours)});
+        const dealer = await Dealer.create({...rest, pic, head, provinceId, cityId, workingHours: JSON.parse(workingHours), img: file.path});
         for (const facility of facilityData) {
             await DealerFacility.create({facilityId: facility.id, dealerId: dealer.id})
         }
@@ -196,9 +205,9 @@ router.post('/add', authenticate, async (req, res) => {
     }
 })
 
-router.patch('/change', authenticate, async (req, res) => {
+router.patch('/change', authenticate, upload.single('img'), async (req, res) => {
     try {
-        const {body: data, user} = req
+        const {body: data, user, file} = req
         const {id, pic, head, facility, cars, provinceId, cityId, workingHours, ...rest} = data
 
         if (user.role !== '0') {
@@ -328,7 +337,18 @@ router.patch('/change', authenticate, async (req, res) => {
             })
         }
 
-        await Dealer.update({...rest, pic, head, provinceId, cityId, workingHours: JSON.stringify(workingHours)}, {where: {id}});
+        const payload = {
+            ...rest, pic, head, provinceId, cityId, workingHours: JSON.parse(workingHours)
+        }
+
+        if (file) {
+            payload.img = file.path
+            const fullPath = path.join(path.resolve(__dirname, '../../'), dealerData.img); // Construct the full file path
+
+            await fs.unlink(fullPath);
+        }
+
+        await Dealer.update(payload, {where: {id}});
 
         for (const dealerFacility of dealerData.Facilities) {
             const {DealerFacility: {id}} = dealerFacility
@@ -410,9 +430,9 @@ router.delete('/remove', authenticate, async (req, res) => {
             await CarDealer.destroy({where: {id}})
         }
 
-        // const fullPath = path.join(path.resolve(__dirname, '../../'), userData.profile_picture); // Construct the full file path
+        const fullPath = path.join(path.resolve(__dirname, '../../'), dealerData.img); // Construct the full file path
 
-        // await fs.unlink(fullPath);
+        await fs.unlink(fullPath);
 
         await Dealer.destroy({
             where:{

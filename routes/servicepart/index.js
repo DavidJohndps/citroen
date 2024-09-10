@@ -115,7 +115,7 @@ router.post('/add', authenticate, async (req, res) => {
             })
         }
 
-        await CarService.create({carId: car.id, serviceId: service.id, part, ...rest})
+        await CarService.create({carId: car.id, serviceId: service.id, part: JSON.parse(part), ...rest})
         
 
         res.send({
@@ -190,7 +190,7 @@ router.post('/change', authenticate, async (req, res) => {
             })
         }
 
-        await CarService.update({carId, serviceId, part, ...rest}, {where: {id}})
+        await CarService.update({carId, serviceId, part: JSON.parse(part), ...rest}, {where: {id}})
 
         res.send({
             success: true,

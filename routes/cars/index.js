@@ -39,10 +39,12 @@ const checkElements = (array1, array2) => {
 router.get('/', async (req, res) => {
     try {
         
-        const {query} = req
-    
+        const {query: {limit, offset, ...rest}} = req
+
         const data = await Car.findAll({
-            where: {...query},
+            limit: parseInt(limit) || 10,
+            offset: parseInt(offset) || 0,
+            ...rest,
             include: [
                 {
                     model: Gallery,
@@ -70,7 +72,7 @@ router.get('/', async (req, res) => {
 router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 1}, {name: 'colorImg'}]), async (req, res) => {
     try {
         const {body: data, files: {img: [file], colorImg: files}} = req
-        const {colors, ...rest} = data
+        const {colors, accessory, ...rest} = data
 
         if(!file) {
             return res.send({
@@ -86,12 +88,20 @@ router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 
             }).status(403);
         }
 
+        // console.log({file, files, rest, colors})
+
         // return res.send({
         //     success: true,
         //     message: 'In Debug Mode'
         // })
 
-        const car = await Car.create({...rest, img: file.path});
+        const payload = {
+            ...rest,
+            img: file.path,
+            accessory: JSON.parse(accessory)
+        }
+
+        const car = await Car.create(payload);
 
         const parsed = JSON.parse(colors)
 
@@ -106,6 +116,8 @@ router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 
             success: true,
             message: 'Mobil berhasil dibuat'
         })
+
+        // console.log(JSON.parse(payload.accessory), JSON.parse(car.accessory))
     } catch (error) {
         console.log(error)
         res.send({
@@ -118,7 +130,7 @@ router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 
 router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCount: 1}, {name: 'colorImg'}]), async (req, res) => {
     try {
         const {body: data, files: {img: [file], colorImg: files}} = req
-        const { id, colors, ...rest} = data
+        const { id, colors, accessory, ...rest} = data
 
         if(!id) {
             res.send({
@@ -152,15 +164,16 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
             })
         }
 
-        const fullPath = path.join(path.resolve(__dirname, '../../'), carData.img); // Construct the full file path
+        const payload = {...rest, accessory: JSON.parse(accessory)}
 
-        await fs.unlink(fullPath);
+        if(file) {
+            payload.img = file.path
 
-        const payload = {...rest}
+            const fullPath = path.join(path.resolve(__dirname, '../../'), carData.img); // Construct the full file path
+            await fs.unlink(fullPath);
+        }
 
-        if(file) payload.img = file.path
-
-        await Car.update({...payload}, {where: { id }})
+        await Car.update(payload, {where: { id }})
 
         const parsed = JSON.parse(colors)
 
@@ -253,8 +266,10 @@ router.delete('/remove', authenticate, async (req, res) => {
         const {body: data} = req
         const { id } = data
 
+        console.log(req)
+
         if(!id) {
-            res.send({
+            return res.send({
                 success: false,
                 message: 'ID mobil tidak ditemukan'
             })
@@ -272,7 +287,7 @@ router.delete('/remove', authenticate, async (req, res) => {
         })
 
         if (!carData) {
-            res.send({
+            return res.send({
                 success: false,
                 message: 'Mobil Tidak Ditemukan'
             })
