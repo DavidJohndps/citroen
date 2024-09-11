@@ -4,7 +4,7 @@ const router = Router();
 const {authenticate, upload} = require('../../middleware')
 
 const {User, Dealer, Facility, DealerFacility, Province, City, Car, CarDealer} = require('../../models');
-const { Op, where } = require('sequelize');
+const { Op } = require('sequelize');
 
 router.get('/', async (req, res) => {
     try {
@@ -24,18 +24,18 @@ router.get('/', async (req, res) => {
                         attributes:[]
                     }
                 },
-                {
-                    model: Car,
-                    as: 'Cars',
-                    attributes: {
-                        exclude: ['price']
-                    },
-                    through: {
-                        model: CarDealer,
-                        as: 'Dealer Price',
-                        attributes:['price']
-                    }
-                },
+                // {
+                //     model: Car,
+                //     as: 'Cars',
+                //     attributes: {
+                //         exclude: ['price']
+                //     },
+                //     through: {
+                //         model: CarDealer,
+                //         as: 'Dealer Price',
+                //         attributes:['price']
+                //     }
+                // },
                 {
                     model: User,
                     as: 'Customer Service',
@@ -83,8 +83,10 @@ router.get('/', async (req, res) => {
 router.post('/add', authenticate, upload.single('img'),async (req, res) => {
     try {
         const {body: data, user, file} = req
-        const {pic, head, facility, cars, provinceId, workingHours, cityId, ...rest} = data
+        const {pic, head, service, sales, facility, provinceId, workingHours, cityId, ...rest} = data
 
+        const facilities = JSON.parse(facility)
+        const workingHour = JSON.parse(workingHours)
         if (user.role !== '0') {
             return res.send({
                 success: false,
@@ -105,23 +107,53 @@ router.post('/add', authenticate, upload.single('img'),async (req, res) => {
             })
         }
 
-        const headUser = await User.findOne({
-            where: {
-                id: head
-            }
-        })
-
-        if(!headUser) {
-            return res.send({
-                success: false,
-                message: 'Akun Head Tidak Ditemukan'
+        if (head) {
+            const headUser = await User.findOne({
+                where: {
+                    id: head
+                }
             })
+    
+            if(!headUser) {
+                return res.send({
+                    success: false,
+                    message: 'Akun Head Tidak Ditemukan'
+                })
+            }
+        }
+        if (sales) {
+            const salesUser = await User.findOne({
+                where: {
+                    id: sales
+                }
+            })
+    
+            if(!salesUser) {
+                return res.send({
+                    success: false,
+                    message: 'Akun Sales Tidak Ditemukan'
+                })
+            }
+        }
+        if (service) {
+            const serviceUser = await User.findOne({
+                where: {
+                    id: service
+                }
+            })
+    
+            if(!serviceUser) {
+                return res.send({
+                    success: false,
+                    message: 'Akun Service Tidak Ditemukan'
+                })
+            }
         }
 
         const facilityData = await Facility.findAll({
             where: {
                 id: {
-                    [Op.in]: facility
+                    [Op.in]: facilities
                 }
             }
         })
@@ -133,22 +165,22 @@ router.post('/add', authenticate, upload.single('img'),async (req, res) => {
             })
         }
 
-        const carIds = cars.map(x => x.id)
+        // const carIds = cars.map(x => x.id)
 
-        const carData = await Car.findAll({
-            where: {
-                id: {
-                    [Op.in]: carIds
-                }
-            }
-        })
+        // const carData = await Car.findAll({
+        //     where: {
+        //         id: {
+        //             [Op.in]: carIds
+        //         }
+        //     }
+        // })
 
-        if(carData.length === 0) {
-            return res.send({
-                success: false,
-                message: 'Mobil tidak ditemukan'
-            })
-        }
+        // if(carData.length === 0) {
+        //     return res.send({
+        //         success: false,
+        //         message: 'Mobil tidak ditemukan'
+        //     })
+        // }
 
         const provinceData = await Province.findOne({
             where: {
@@ -184,13 +216,13 @@ router.post('/add', authenticate, upload.single('img'),async (req, res) => {
             })
         }
         
-        const dealer = await Dealer.create({...rest, pic, head, provinceId, cityId, workingHours: JSON.parse(workingHours), img: file.path});
+        const dealer = await Dealer.create({...rest, pic, head, service, sales, provinceId, cityId, workingHours: workingHour, img: file.path});
         for (const facility of facilityData) {
             await DealerFacility.create({facilityId: facility.id, dealerId: dealer.id})
         }
-        for (const car of cars) {
-            await CarDealer.create({carId: car.id, dealerId: dealer.id, price: car.price})
-        }
+        // for (const car of cars) {
+        //     await CarDealer.create({carId: car.id, dealerId: dealer.id, price: car.price})
+        // }
 
         res.send({
             success: true,
@@ -208,7 +240,7 @@ router.post('/add', authenticate, upload.single('img'),async (req, res) => {
 router.patch('/change', authenticate, upload.single('img'), async (req, res) => {
     try {
         const {body: data, user, file} = req
-        const {id, pic, head, facility, cars, provinceId, cityId, workingHours, ...rest} = data
+        const {id, pic, head, sales, service, facility, provinceId, cityId, workingHours, ...rest} = data
 
         if (user.role !== '0') {
             return res.send({
@@ -237,20 +269,63 @@ router.patch('/change', authenticate, upload.single('img'), async (req, res) => 
                         attributes:['id']
                     }
                 },
-                {
-                    model: Car,
-                    as: 'Cars',
-                    attributes: {
-                        exclude: ['price']
-                    },
-                    through: {
-                        model: CarDealer,
-                        as: 'Dealer Price',
-                        attributes:['id', 'price']
-                    }
-                },
+                // {
+                //     model: Car,
+                //     as: 'Cars',
+                //     attributes: {
+                //         exclude: ['price']
+                //     },
+                //     through: {
+                //         model: CarDealer,
+                //         as: 'Dealer Price',
+                //         attributes:['id', 'price']
+                //     }
+                // },
             ]
         })
+
+        if (head) {
+            const headUser = await User.findOne({
+                where: {
+                    id: head
+                }
+            })
+    
+            if(!headUser) {
+                return res.send({
+                    success: false,
+                    message: 'Akun Head Tidak Ditemukan'
+                })
+            }
+        }
+        if (sales) {
+            const salesUser = await User.findOne({
+                where: {
+                    id: sales
+                }
+            })
+    
+            if(!salesUser) {
+                return res.send({
+                    success: false,
+                    message: 'Akun Sales Tidak Ditemukan'
+                })
+            }
+        }
+        if (service) {
+            const serviceUser = await User.findOne({
+                where: {
+                    id: service
+                }
+            })
+    
+            if(!serviceUser) {
+                return res.send({
+                    success: false,
+                    message: 'Akun Service Tidak Ditemukan'
+                })
+            }
+        }
 
         const picUser = await User.findOne({
             where: {
@@ -262,19 +337,6 @@ router.patch('/change', authenticate, upload.single('img'), async (req, res) => 
             return res.send({
                 success: false,
                 message: 'Akun PIC Tidak Ditemukan'
-            })
-        }
-
-        const headUser = await User.findOne({
-            where: {
-                id: head
-            }
-        })
-
-        if(!headUser) {
-            return res.send({
-                success: false,
-                message: 'Akun Head Tidak Ditemukan'
             })
         }
 
@@ -293,22 +355,22 @@ router.patch('/change', authenticate, upload.single('img'), async (req, res) => 
             })
         }
 
-        const carIds = cars.map(x => x.id)
+        // const carIds = cars.map(x => x.id)
 
-        const carData = await Car.findAll({
-            where: {
-                id: {
-                    [Op.in]: carIds
-                }
-            }
-        })
+        // const carData = await Car.findAll({
+        //     where: {
+        //         id: {
+        //             [Op.in]: carIds
+        //         }
+        //     }
+        // })
 
-        if(carData.length === 0) {
-            return res.send({
-                success: false,
-                message: 'Mobil tidak ditemukan'
-            })
-        }
+        // if(carData.length === 0) {
+        //     return res.send({
+        //         success: false,
+        //         message: 'Mobil tidak ditemukan'
+        //     })
+        // }
 
         const provinceData = await Province.findOne({
             where: {
@@ -338,7 +400,7 @@ router.patch('/change', authenticate, upload.single('img'), async (req, res) => 
         }
 
         const payload = {
-            ...rest, pic, head, provinceId, cityId, workingHours: JSON.parse(workingHours)
+            ...rest, pic, head, sales, service, provinceId, cityId, workingHours: JSON.parse(workingHours)
         }
 
         if (file) {
@@ -358,14 +420,14 @@ router.patch('/change', authenticate, upload.single('img'), async (req, res) => 
             await DealerFacility.create({facilityId: facility.id, dealerId: id})
         }
 
-        for (const dealerCar of dealerData.Cars) {
-            const {id} = dealerCar['Dealer Price']
-            await CarDealer.destroy({where: {id}})
-        }
+        // for (const dealerCar of dealerData.Cars) {
+        //     const {id} = dealerCar['Dealer Price']
+        //     await CarDealer.destroy({where: {id}})
+        // }
 
-        for (const car of cars) {
-            await CarDealer.create({carId: car.id, dealerId: id, price: car.price})
-        }
+        // for (const car of cars) {
+        //     await CarDealer.create({carId: car.id, dealerId: id, price: car.price})
+        // }
 
         res.send({
             success: true,
@@ -398,18 +460,18 @@ router.delete('/remove', authenticate, async (req, res) => {
                         attributes:['id']
                     }
                 },
-                {
-                    model: Car,
-                    as: 'Cars',
-                    attributes: {
-                        exclude: ['price']
-                    },
-                    through: {
-                        model: CarDealer,
-                        as: 'Dealer Price',
-                        attributes:['id', 'price']
-                    }
-                },
+                // {
+                //     model: Car,
+                //     as: 'Cars',
+                //     attributes: {
+                //         exclude: ['price']
+                //     },
+                //     through: {
+                //         model: CarDealer,
+                //         as: 'Dealer Price',
+                //         attributes:['id', 'price']
+                //     }
+                // },
             ]
         })
 
@@ -425,10 +487,10 @@ router.delete('/remove', authenticate, async (req, res) => {
             await DealerFacility.destroy({where: {id}})
         }
 
-        for (const dealerCar of dealerData.Cars) {
-            const {id} = dealerCar['Dealer Price']
-            await CarDealer.destroy({where: {id}})
-        }
+        // for (const dealerCar of dealerData.Cars) {
+        //     const {id} = dealerCar['Dealer Price']
+        //     await CarDealer.destroy({where: {id}})
+        // }
 
         const fullPath = path.join(path.resolve(__dirname, '../../'), dealerData.img); // Construct the full file path
 

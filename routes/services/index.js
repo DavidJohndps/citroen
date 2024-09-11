@@ -7,10 +7,12 @@ const {Service} = require('../../models')
 router.get('/', async (req, res) => {
     try {
         
-        const {query} = req
+        const {query: {limit, offset, ...rest}} = req
     
         const data = await Service.findAll({
-            where: {...query}
+            limit: parseInt(limit) || 10,
+            offset: parseInt(offset) || 0,
+            ...rest,
         });
     
         res.send({

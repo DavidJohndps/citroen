@@ -13,6 +13,10 @@ module.exports = (sequelize) => {
         foreignKey: 'head',
         type: DataTypes.UUID
       })
+      User.hasMany(models.Dealer, {
+        foreignKey: 'service',
+        type: DataTypes.UUID
+      })
     }
   }
 

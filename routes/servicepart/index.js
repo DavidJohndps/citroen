@@ -37,10 +37,12 @@ const isValid = (string) => {
 router.get('/', async (req, res) => {
     try {
         
-        const {query} = req
+        const {query: {limit, offset, ...rest}} = req
     
         const data = await Car.findAll({
-            where: {...query},
+            limit: parseInt(limit) || 10,
+            offset: parseInt(offset) || 0,
+            ...rest,
             include: [
                 {
                     model: Service,
@@ -72,7 +74,7 @@ router.get('/', async (req, res) => {
 router.post('/add', authenticate, async (req, res) => {
     try {
         const {body: data, user} = req
-        const {carId, serviceId, part, ...rest} = data
+        const {carId, serviceId, part} = data
 
         const allowedRole = [0,1,2]
         if (allowedRole.includes(user.role)) {
@@ -109,13 +111,26 @@ router.post('/add', authenticate, async (req, res) => {
         }
 
         if(!isValid(part)) {
+            console.log({part})
             return res.send({
                 success: false,
                 message: 'Format Part tidak sesuai'
             })
         }
 
-        await CarService.create({carId: car.id, serviceId: service.id, part: JSON.parse(part), ...rest})
+        const parsedPart = JSON.parse(part);
+
+        const {totalPrice} = parsedPart.reduce((acc, item) => {
+            const {qty, price} = item
+            if (!acc) {
+                acc.totalPrice = 0
+            }
+
+            acc.totalPrice += parseInt(price) * parseInt(qty)
+            return acc
+        }, {totalPrice: 0})
+
+        await CarService.create({carId: car.id, serviceId: service.id, part: JSON.parse(part), price: totalPrice})
         
 
         res.send({
@@ -134,7 +149,7 @@ router.post('/add', authenticate, async (req, res) => {
 router.post('/change', authenticate, async (req, res) => {
     try {
         const {body: data, user} = req
-        const {id, carId, serviceId, part, ...rest} = data
+        const {id, carId, serviceId, part} = data
 
         const allowedRole = [0,1,2]
         if (allowedRole.includes(user.role)) {
@@ -190,7 +205,19 @@ router.post('/change', authenticate, async (req, res) => {
             })
         }
 
-        await CarService.update({carId, serviceId, part: JSON.parse(part), ...rest}, {where: {id}})
+        const parsedPart = JSON.parse(part);
+
+        const {totalPrice} = parsedPart.reduce((acc, item) => {
+            const {qty, price} = item
+            if (!acc) {
+                acc.totalPrice = 0
+            }
+
+            acc.totalPrice += parseInt(price) * parseInt(qty)
+            return acc
+        }, {totalPrice: 0})
+
+        await CarService.update({carId, serviceId, part: JSON.parse(part), price: totalPrice}, {where: {id}})
 
         res.send({
             success: true,

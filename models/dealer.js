@@ -33,15 +33,16 @@ module.exports = (sequelize, DataTypes) => {
           name: 'head'
         }
       })
-      Dealer.belongsToMany(models.Car, {
-        as: 'Cars',
-        through: 'CarDealer',
-        foreignKey: 'dealerId',
-      })
-      Dealer.hasMany(models.CarDealer, {
-        as: 'Dealer Price',
+      Dealer.belongsTo(models.User, {
+        as: 'Service Head',
         foreignKey: {
-          name: 'dealerId'
+          name: 'service'
+        }
+      })
+      Dealer.belongsTo(models.User, {
+        as: 'Sales Head',
+        foreignKey: {
+          name: 'sales'
         }
       })
       Dealer.belongsTo(models.Province, {
@@ -52,6 +53,17 @@ module.exports = (sequelize, DataTypes) => {
         as: 'City',
         foreignKey: 'cityId'
       })
+      // Dealer.belongsToMany(models.Car, {
+      //   as: 'Cars',
+      //   through: 'CarDealer',
+      //   foreignKey: 'dealerId',
+      // })
+      // Dealer.hasMany(models.CarDealer, {
+      //   as: 'Dealer Price',
+      //   foreignKey: {
+      //     name: 'dealerId'
+      //   }
+      // })
     }
   }
   Dealer.init({
@@ -64,6 +76,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false
     },
+    hotline: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
     workingHours: {
       type: DataTypes.JSON,
       allowNull: false
@@ -73,6 +89,14 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false
     },
     head: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    service: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    sales: {
       type: DataTypes.STRING,
       allowNull: true
     },

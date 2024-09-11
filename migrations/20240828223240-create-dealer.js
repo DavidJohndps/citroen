@@ -12,6 +12,10 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false
       },
+      hotline: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
       workingHours: {
         type: Sequelize.JSON,
         allowNull: false
@@ -23,6 +27,14 @@ module.exports = {
       head: {
         type: Sequelize.STRING,
         allowNull: true
+      },
+      service: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
+      sales: {
+        type: Sequelize.STRING,
+        allowNull: false
       },
       address: {
         type: Sequelize.STRING,
