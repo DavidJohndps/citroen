@@ -20,6 +20,15 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'galleryId',
         type: DataTypes.UUID
       })
+      Gallery.belongsToMany(models.Dealer, {
+        through: 'DealerGallery',
+        foreignKey: 'galleryId',
+        type: DataTypes.UUID
+      })
+      Gallery.hasMany(models.CarGallery, {
+        foreignKey: 'galleryId',
+        type: DataTypes.UUID
+      })
     }
   }
   Gallery.init({

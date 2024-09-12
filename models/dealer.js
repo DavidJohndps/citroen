@@ -21,6 +21,16 @@ module.exports = (sequelize, DataTypes) => {
           name: 'dealerId'
         }
       })
+      Dealer.belongsToMany(models.Gallery, {
+        through: 'DealerGallery',
+        foreignKey: 'dealerId',
+        sourceKey: 'id'
+      })
+      Dealer.hasMany(models.DealerGallery, {
+        foreignKey: {
+          name: 'dealerId'
+        }
+      })
       Dealer.belongsTo(models.User, {
         as: 'Customer Service',
         foreignKey: {

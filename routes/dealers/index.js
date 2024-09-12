@@ -1,9 +1,9 @@
 const {Router} = require('express')
 const router = Router();
 
-const {authenticate, upload} = require('../../middleware')
+const {authenticate, uploadGallery} = require('../../middleware')
 
-const {User, Dealer, Facility, DealerFacility, Province, City, Car, CarDealer} = require('../../models');
+const {User, Dealer, Facility, DealerFacility, Province, City, Gallery, DealerGallery} = require('../../models');
 const { Op } = require('sequelize');
 
 router.get('/', async (req, res) => {
@@ -24,18 +24,13 @@ router.get('/', async (req, res) => {
                         attributes:[]
                     }
                 },
-                // {
-                //     model: Car,
-                //     as: 'Cars',
-                //     attributes: {
-                //         exclude: ['price']
-                //     },
-                //     through: {
-                //         model: CarDealer,
-                //         as: 'Dealer Price',
-                //         attributes:['price']
-                //     }
-                // },
+                {
+                    model: Gallery,
+                    through: {
+                        model: DealerGallery,
+                        attributes:['id']
+                    }
+                },
                 {
                     model: User,
                     as: 'Customer Service',
@@ -80,9 +75,9 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.post('/add', authenticate, upload.single('img'),async (req, res) => {
+router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 1}, {name: 'galleries'}]),async (req, res) => {
     try {
-        const {body: data, user, file} = req
+        const {body: data, user, files: {img: [file], galleries: files}} = req
         const {pic, head, service, sales, facility, provinceId, workingHours, cityId, ...rest} = data
 
         const facilities = JSON.parse(facility)
@@ -220,6 +215,21 @@ router.post('/add', authenticate, upload.single('img'),async (req, res) => {
         for (const facility of facilityData) {
             await DealerFacility.create({facilityId: facility.id, dealerId: dealer.id})
         }
+
+        if (files.length !== 0) {
+            // return res.send({
+            //     success: false,
+            //     message: 'Foto warna mobil perlu ditambahkan'
+            // }).status(403);
+
+            files.map( async gallery => {
+
+                const path = gallery.path
+                const galleryData = await Gallery.create({path});
+                await DealerGallery.create({dealerId: dealer.id, galleryId: galleryData.id})
+            })
+
+        }
         // for (const car of cars) {
         //     await CarDealer.create({carId: car.id, dealerId: dealer.id, price: car.price})
         // }
@@ -237,9 +247,9 @@ router.post('/add', authenticate, upload.single('img'),async (req, res) => {
     }
 })
 
-router.patch('/change', authenticate, upload.single('img'), async (req, res) => {
+router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCount: 1}, {name: 'galleries'}]), async (req, res) => {
     try {
-        const {body: data, user, file} = req
+        const {body: data, user, files: {img: [file], galleries: files}} = req
         const {id, pic, head, sales, service, facility, provinceId, cityId, workingHours, ...rest} = data
 
         if (user.role !== '0') {
@@ -420,6 +430,21 @@ router.patch('/change', authenticate, upload.single('img'), async (req, res) => 
             await DealerFacility.create({facilityId: facility.id, dealerId: id})
         }
 
+        if (files.length !== 0) {
+            // return res.send({
+            //     success: false,
+            //     message: 'Foto warna mobil perlu ditambahkan'
+            // }).status(403);
+
+            files.map( async gallery => {
+
+                const path = gallery.path
+                const galleryData = await Gallery.create({path});
+                await DealerGallery.create({dealerId: id, galleryId: galleryData.id})
+            })
+
+        }
+
         // for (const dealerCar of dealerData.Cars) {
         //     const {id} = dealerCar['Dealer Price']
         //     await CarDealer.destroy({where: {id}})
@@ -436,6 +461,73 @@ router.patch('/change', authenticate, upload.single('img'), async (req, res) => 
     } catch (error) {
         console.log({error})
         res.send({
+            success: false,
+            message: error.message
+        })
+    }
+})
+
+router.patch('/deleteGallery', authenticate, async(req, res) => {
+    const {body: {galleryId, id}} = req
+    try {
+        if(!id) {
+            return res.send({
+                success: false,
+                message: 'Dealer tidak ditemukan'
+            })
+        }
+        if(!galleryId) {
+            return res.send({
+                success: false,
+                message: 'Gallery dealer tersebut tidak ditemukan'
+            })
+        }
+
+        const dealer = await Dealer.findOne({
+            where: {
+                id
+            }
+        })
+        if(!dealer) {
+            return res.send({
+                success: false,
+                message: 'Dealer tersebut tidak ditemukan'
+            })
+        }
+        
+        const dealerGallery = await DealerGallery.findOne({
+            where: {
+                id: galleryId,
+                dealerId: id,
+            }
+        })
+
+        if (!dealerGallery) {
+            return res.send({
+                success: false,
+                message: 'Gallery Dealer tidak ditemukan'
+            }).status(404)
+        }
+
+        const gallery = await Gallery.findOne({
+            where: {
+                id: dealerGallery.galleryId
+            }
+        })
+        
+        const fullPath = path.join(path.resolve(__dirname, '../../'), gallery.path); // Construct the full file path
+
+        await fs.unlink(fullPath);
+
+        await DealerGallery.destroy({where: {galleryId}});
+
+        return res.status(200).send({
+            success: true,
+            message: `Gallery Dealer berhasil didelete`
+        })
+    } catch (error) {
+        console.log(error)
+        return res.send({
             success: false,
             message: error.message
         })
