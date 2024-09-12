@@ -37,11 +37,16 @@ const isValid = (string) => {
 router.get('/', async (req, res) => {
     try {
         
-        const {query: {limit, offset, ...rest}} = req
+        const {query: {limit, offset, id,...rest}} = req
     
-        const data = await Car.findAll({
+
+        const payload = {
             limit: parseInt(limit) || 10,
             offset: parseInt(offset) || 0,
+        }
+        if (id) payload.where = {id}
+        const data = await Car.findAll({
+            ...payload,
             ...rest,
             include: [
                 {
