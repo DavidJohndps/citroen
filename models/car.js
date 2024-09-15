@@ -29,15 +29,6 @@ module.exports = (sequelize, DataTypes) => {
           name: 'carId'
         }
       })
-      Car.belongsToMany(models.Dealer, {
-        through: 'CarDealer',
-        foreignKey: 'carId',
-      })
-      Car.hasMany(models.CarDealer, {
-        foreignKey: {
-          name: 'carId'
-        }
-      })
     }
   }
   Car.init({
@@ -50,8 +41,12 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false
     },
+    brochure: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
     price: {
-      type: DataTypes.FLOAT,
+      type: DataTypes.JSON,
       allowNull: false
     },
     img: {

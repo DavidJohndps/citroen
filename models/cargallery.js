@@ -43,6 +43,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.ENUM,
       values: ['One-Tone', 'Two-Tone'],
       allowNull: false
+    },
+    price: {
+      type: DataTypes.JSON,
+      allowNull: false
     }
   }, {
     sequelize,

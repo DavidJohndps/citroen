@@ -63,17 +63,6 @@ module.exports = (sequelize, DataTypes) => {
         as: 'City',
         foreignKey: 'cityId'
       })
-      // Dealer.belongsToMany(models.Car, {
-      //   as: 'Cars',
-      //   through: 'CarDealer',
-      //   foreignKey: 'dealerId',
-      // })
-      // Dealer.hasMany(models.CarDealer, {
-      //   as: 'Dealer Price',
-      //   foreignKey: {
-      //     name: 'dealerId'
-      //   }
-      // })
     }
   }
   Dealer.init({
