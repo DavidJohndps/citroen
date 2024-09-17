@@ -53,6 +53,10 @@ module.exports = (sequelize) => {
       unique: true,
       allowNull: false
     },
+    whatsappLink: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
     profile_picture: {
       type: DataTypes.STRING,
       allowNull: true
