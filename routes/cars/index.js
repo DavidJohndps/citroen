@@ -206,31 +206,6 @@ router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 
                 price
             }
         })
-        // parsedColors.map(async (pricing, index) => {
-        //     const {provinceId, name, category, price} = pricing
-        //     if (!provinceId) {
-        //         return res.send({
-        //             success: false,
-        //             message: 'Format harga tidak sesuai, tidak ada provinsi'
-        //         }).status(500)
-        //     }
-        //     if (!price) {
-        //         return res.send({
-        //             success: false,
-        //             message: 'Format harga tidak sesuai, tidak ada harga'
-        //         }).status(500)
-        //     }
-        //     const province = provinceMap[provinceId].name
-        //     const path = files[index].path
-        //     const gallery = await Gallery.create({name, path}, {transaction});
-        //     await CarGallery.create({carId: car.id, galleryId: gallery.id, type: category}, {transaction})
-        //     return {
-        //         provinceId,
-        //         name,
-        //         provinceName: province.name,
-        //         price
-        //     }
-        // })
         
         const carGalleryPayload = []
         const mappedColor = parsedColors.map( async (pricing, index) => {
@@ -310,89 +285,6 @@ router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 
             }
         }))
 
-        // // check if color option exist first
-        // const colorData = await ColorOption.findAll({
-        //     where: {
-        //         id: {
-        //             [Op.in]: parsedColors.map(x => x.id)
-        //         },
-        //     }
-        // })
-        // if(colorData.length !== parsedColors.length) {
-        //     return res.send({
-        //         success: false,
-        //         message: 'Salah satu warna tidak ditemukan'
-        //     })
-        // }
-
-        // // create color compatibility
-        // const carColorOptionPayload = parsedColors.map(x => ({colorOptionId: x.id,carId: car.id}))
-        // const carColorOptions = await CarColourOption.bulkCreate(carColorOptionPayload, {transaction})
-        // const carColorMap = carColorOptions.reduce((acc, item) => {
-        //     const key = item.colorOptionId
-        //     if (!acc[key]) acc[key] = item
-        //     return acc
-        // }, {})
-
-        // // check if accessory package exist
-        // const accessoryData = await Accessory.findAll({
-        //     where: {
-        //         id: {
-        //             [Op.in]: parsedAccessory.map(x => x.id)
-        //         }
-        //     }
-        // })
-        // if(accessoryData.length !== parsedAccessory.length) {
-        //     return res.send({
-        //         success: false,
-        //         message: 'Salah satu accessory tidak ditemukan'
-        //     })
-        // }
-
-        // // for color also save the gallery for particular image
-        // accessoryData.map(async (el, index) => {
-        //     const {name, category} = el
-        //     const path = files[index].path
-        //     const gallery = await Gallery.create({name, path}, {transaction});
-        //     await CarGallery.create({carId: car.id, galleryId: gallery.id, type: category}, {transaction})
-        // })
-
-        // // create accessory compatibility
-        // const carAccessoryPayload = parsedAccessory.map(x => ({accessoryId: x.id, carId: car.id}))
-        // const carAccessoryData = await CarAccessory.bulkCreate(carAccessoryPayload, {transaction})
-        // const carAccessoryMap = carAccessoryData.reduce((acc, item) => {
-        //     const key = item.accessoryId
-        //     if (!acc[key]) acc[key] = item
-        //     return acc
-        // }, {})
-
-        // // then we'll handle the prices for each region (car, accessory, colors)
-        // // first car prices
-        // const carRegionPayload = parsedRegion.map(x => ({regionId: x.id, carId: car.id, price: x.price}));
-        // await CarPrice.create(carRegionPayload, {transaction})
-
-        // // second option prices
-        // const colorOptionPricePayload = parsedColors.map(x => {
-        //     const carColorOptions = carColorMap[x.id]
-        //     return {
-        //         carColorOptionId: carColorOptions.id,
-        //         regionId: x.regionId,
-        //         price: x.price
-        //     }
-        // })
-        // await ColourOptionPrice.bulkCreate(colorOptionPricePayload, {transaction})
-
-        // // last accessory prices
-        // const accessoryPricePayload = carAccessoryPayload.map(x => {
-        //     const carAccessory = carAccessoryMap[x.id]
-        //     return {
-        //         carAccessoryId: carAccessory.id,
-        //         regionId: x.regionId,
-        //         price: x.price
-        //     }
-        // })
-        // await AccessoryPrice.bulkCreate(accessoryPricePayload, {transaction})
-
         res.send({
             success: true,
             message: 'Mobil berhasil dibuat'
@@ -412,7 +304,7 @@ router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 
 router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCount: 1}, {name: 'colorImg'}]), async (req, res) => {
     try {
         const {body: data, user, files: {img: [file], colorImg: files}} = req
-        const { id, colors, accessory, regionPrices, ...rest} = data
+        const {newColors, colors, accessory, price, ...rest} = data
 
         // Catcher
         if (user.role !== '0') {
@@ -429,42 +321,32 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
             })
         }
 
-        // if (files.length === 0 && colors) {
+        // if (files.length === 0 && newColors) {
         //     res.send({
         //         success: false,
         //         message: 'Foto warna mobil perlu ditambahkan'
         //     }).status(403);
         // }
 
-        if (files.length !== 0 && !colors) {
+        if (files.length !== 0 && !newColors) {
             res.send({
                 success: false,
                 message: 'Nama Foto warna mobil perlu ditambahkan'
             }).status(403);
         }
 
-        if(!regionPrices) {
+        if(!price) {
             return res.send({
                 success: false,
                 message: 'Harga per Region perlu ditambahkan'
             })
         }
 
-        if(!isValid(regionPrices)) {
+        if(!isValid(price)) {
             return res.send({
                 success: false,
                 message: "Format Harga Region tidak sesuai"
             })
-        }
-
-        if (regionPrices) {
-            const regionData = await Region.findAll({ where: { id: { [Op.in]: regionPrices.map(x => x.regionId) } } })
-            if(!regionData) {
-                return res.send({
-                    success: false,
-                    message: 'Salah Satu Region tidak ditemukan'
-                }).status(404)
-            }
         }
 
         // find particular car data
@@ -481,44 +363,195 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
             })
         }
 
-        // payload for car data
-        const payload = {...rest, accessory: JSON.parse(accessory)}
+        // parsing all the stringified data
+        const parsedColors = JSON.parse(colors)
+        const parsedNewColors = JSON.parse(newColors)
+        const parsedAccessory = JSON.parse(accessory)
+        const parsedPrice = JSON.parse(price)
 
-        // if theres file unliked the past file
-        if(file) {
-            payload.img = file.path
+        const provinces = parsedPrice.reduce((acc, item) => {
+            const {provinceId} = item
+            // const provinceIds = prices.map(x => x.provinceId)
+            acc.push(provinceId)
+            return acc
+        }, [])
 
-            const fullPath = path.join(path.resolve(__dirname, '../../'), carData.img); // Construct the full file path
-            await fs.unlink(fullPath);
+        const provinceData = await Province.findAll({ where: { id: { [Op.in]: provinces } } })
+        if(!provinceData) {
+            return res.send({
+                success: false,
+                message: 'Salah Satu Provinsi tidak ditemukan'
+            }).status(404)
         }
+        const provinceMap = provinceData.reduce((acc, item) => {
+            const key = item.id
+            if (!acc[key]) acc[key] = item
+            return acc
+        }, {})
+        
+        const carGalleryIds = parsedColors.reduce((acc, item) => {
+            const {id: galleryId} = item
+            acc.push(galleryId)
+            return acc
+        }, [])
+        const galleryData = await Gallery.findAll({where: { id: { [Op.in]: carGalleryIds }, carId: id}})
+        const galleryMapped = galleryData.reduce((acc, item) => {
+            const key = item.id
+            if (!acc[key]) acc[key] = item
+            return acc
+        }, {})
+        const carGalleryData = await CarGallery.findAll({where: { galleryId: { [Op.in]: carGalleryIds }, carId: id}})
+        const carGalleryMapped = carGalleryData.reduce((acc, item) => {
+            const key = item.galleryId
+            if (!acc[key]) acc[key] = item
+            return acc
+        }, {})
 
-        // update the car data
-        await Car.update(payload, {where: { id }})
-
-        const parsedRegion = JSON.parse(regionPrices)
-
-        // delete past car prices
-        await CarRegion.destroy({
-            where: {
-                carId: id
+        // verify all parsed json have valid property
+        const mappedPrice = parsedPrice.map(pricing => {
+            const {provinceId, price} = pricing
+            if (!provinceId) {
+                return res.send({
+                    success: false,
+                    message: 'Format harga tidak sesuai, tidak ada provinsi'
+                }).status(500)
+            }
+            if (!price) {
+                return res.send({
+                    success: false,
+                    message: 'Format harga tidak sesuai, tidak ada harga'
+                }).status(500)
+            }
+            const province = provinceMap[provinceId].name
+            return {
+                provinceId,
+                name: province,
+                price
             }
         })
 
-        // create car prices to each region
-        parsedRegion.map( async region => {
-            await CarRegion.create({carId: id, regionId: region.regionId, price: region.price})
+        // updating saved color data
+        parsedColors.map(async pricing => {
+            const {id: galleryId, name, category, prices} = pricing
+            const mapped = prices.map(x => {
+                if (!x.provinceId) {
+                    return res.send({
+                        success: false,
+                        message: 'Format harga tidak sesuai, tidak ada provinsi'
+                    }).status(500)
+                }
+                if (!x.price) {
+                    return res.send({
+                        success: false,
+                        message: 'Format harga tidak sesuai, tidak ada harga'
+                    }).status(500)
+                }
+                const province = provinceMap[x.provinceId].name
+                return {
+                    ...x,
+                    provinceName: province
+                }
+            })
+            if (!galleryId || galleryMapped[galleryId]) {
+                return res.send({
+                    success: false,
+                    message: 'Gallery tidak ditemukan'
+                })
+            }
+            if (!carGalleryMapped[galleryId]) {
+                return res.send({
+                    success: false,
+                    message: 'Detail Gallery tidak ditemukan'
+                })
+            }
+            const carGallery = carGalleryMapped[galleryId]
+            await Gallery.update({name}, {
+                where: {
+                    id: galleryId
+                }
+            })
+            await CarGallery.update({type: category, price: mapped}, {where: {
+                id: carGallery.id
+            }})
+        })
+        
+        // creating new color
+        const carGalleryPayload = []
+        const mappedColor = parsedNewColors.map( async (pricing, index) => {
+            const {name, category, prices} = pricing
+            const mapped = prices.map(x => {
+                if (!x.provinceId) {
+                    return res.send({
+                        success: false,
+                        message: 'Format harga tidak sesuai, tidak ada provinsi'
+                    }).status(500)
+                }
+                if (!x.price) {
+                    return res.send({
+                        success: false,
+                        message: 'Format harga tidak sesuai, tidak ada harga'
+                    }).status(500)
+                }
+                const province = provinceMap[x.provinceId].name
+                return {
+                    ...x,
+                    provinceName: province
+                }
+            })
+            const path = files[index].path
+            const gallery = await Gallery.create({name, path});
+            carGalleryPayload.push({carId: null, galleryId: gallery.id, type: category, price: prices})
+            return {
+                name,
+                prices: mapped,
+                category
+            }
+        })
+        const mappedAccessory = parsedAccessory.map(accessory => {
+            const {name, desc, prices} = accessory
+            const maped = prices.map(x => {
+                const province = provinceMap[x.provinceId]
+                if (!x.provinceId) {
+                    return res.send({
+                        success: false,
+                        message: 'Format harga tidak sesuai, tidak ada provinsi'
+                    }).status(500)
+                }
+                if (!x.price) {
+                    return res.send({
+                        success: false,
+                        message: 'Format harga tidak sesuai, tidak ada harga'
+                    }).status(500)
+                }
+                return {
+                    provinceId: x.provinceId,
+                    provinceName: province.name,
+                    price: x.price
+                }
+            })
+            return {
+                name,
+                desc,
+                prices: maped
+            }
         })
 
-        if (files.length !== 0) {
-            const parsed = JSON.parse(colors)
-    
-            parsed.map(async (el, index) => {
-                const {name, category} = el
-                const path = files[index].path
-                const gallery = await Gallery.create({name, path})
-                await CarGallery.create({carId: id, galleryId: gallery.id, type: category})
-            })
+        const payload = {
+            ...rest,
+            price: mappedPrice,
+            accessory: mappedAccessory
         }
+
+        if (file) payload.img = file.path
+
+        await Car.update({...payload}, {where: id});
+        await CarGallery.bulkCreate(carGalleryPayload.map(x => {
+            const {carId, ...rest} = x
+            return {
+                ...rest,
+                carId: id
+            }
+        }))
 
         res.send({
             success: true,

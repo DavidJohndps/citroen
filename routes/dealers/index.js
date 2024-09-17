@@ -1,5 +1,7 @@
 const {Router} = require('express')
 const router = Router();
+const path = require('path')
+const fs = require('fs').promises;
 
 const {authenticate, uploadGallery} = require('../../middleware')
 
@@ -18,7 +20,7 @@ router.get('/', async (req, res) => {
             include: [
                 {
                     model: Facility,
-                    attributes: ['name'],
+                    attributes: ['id','name'],
                     through: {
                         model: DealerFacility,
                         attributes:[]
@@ -160,23 +162,6 @@ router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 
             })
         }
 
-        // const carIds = cars.map(x => x.id)
-
-        // const carData = await Car.findAll({
-        //     where: {
-        //         id: {
-        //             [Op.in]: carIds
-        //         }
-        //     }
-        // })
-
-        // if(carData.length === 0) {
-        //     return res.send({
-        //         success: false,
-        //         message: 'Mobil tidak ditemukan'
-        //     })
-        // }
-
         const provinceData = await Province.findOne({
             where: {
                 id: provinceId
@@ -250,8 +235,10 @@ router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 
 router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCount: 1}, {name: 'galleries'}]), async (req, res) => {
     try {
         const {body: data, user, files: {img: [file], galleries: files}} = req
-        const {id, pic, head, sales, service, facility, provinceId, cityId, workingHours, ...rest} = data
+        const {id, pic, head, service, sales, facility, provinceId, workingHours, cityId, ...rest} = data
 
+        const facilities = JSON.parse(facility)
+        const workingHour = JSON.parse(workingHours)
         if (user.role !== '0') {
             return res.send({
                 success: false,
@@ -293,6 +280,19 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
                 // },
             ]
         })
+
+        const picUser = await User.findOne({
+            where: {
+                id: pic
+            }
+        })
+
+        if(!picUser) {
+            return res.send({
+                success: false,
+                message: 'Akun PIC Tidak Ditemukan'
+            })
+        }
 
         if (head) {
             const headUser = await User.findOne({
@@ -337,23 +337,10 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
             }
         }
 
-        const picUser = await User.findOne({
-            where: {
-                id: pic
-            }
-        })
-
-        if(!picUser) {
-            return res.send({
-                success: false,
-                message: 'Akun PIC Tidak Ditemukan'
-            })
-        }
-
         const facilityData = await Facility.findAll({
             where: {
                 id: {
-                    [Op.in]: facility
+                    [Op.in]: facilities
                 }
             }
         })
@@ -364,23 +351,6 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
                 message: 'Fasilitas tidak ditemukan'
             })
         }
-
-        // const carIds = cars.map(x => x.id)
-
-        // const carData = await Car.findAll({
-        //     where: {
-        //         id: {
-        //             [Op.in]: carIds
-        //         }
-        //     }
-        // })
-
-        // if(carData.length === 0) {
-        //     return res.send({
-        //         success: false,
-        //         message: 'Mobil tidak ditemukan'
-        //     })
-        // }
 
         const provinceData = await Province.findOne({
             where: {
@@ -409,8 +379,15 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
             })
         }
 
+        if (!file) {
+            return res.send({
+                success: false,
+                message: 'Foto Dealer perlu ditambahkan'
+            })
+        }
+
         const payload = {
-            ...rest, pic, head, sales, service, provinceId, cityId, workingHours: JSON.parse(workingHours)
+            ...rest, pic, head, sales, service, provinceId, cityId, workingHours: workingHour
         }
 
         if (file) {
@@ -430,7 +407,8 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
             await DealerFacility.create({facilityId: facility.id, dealerId: id})
         }
 
-        if (files.length !== 0) {
+        if (files && files?.length !== 0) {
+            console.log(files)
             // return res.send({
             //     success: false,
             //     message: 'Foto warna mobil perlu ditambahkan'

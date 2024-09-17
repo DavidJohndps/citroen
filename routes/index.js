@@ -1,4 +1,5 @@
 const {Router} = require('express');
+const bookingRoutes = require('./booking');
 const profileRoutes = require('./profile');
 const userRoutes = require('./users');
 const carRoutes = require('./cars');
@@ -13,6 +14,7 @@ const cities = require('./cities');
 const router = Router();
 
 router.use('/authenticate', authenticate);
+router.use('/booking', bookingRoutes);
 router.use('/provincies', provincies);
 router.use('/cities', cities);
 router.use('/authenticate', authenticate);
