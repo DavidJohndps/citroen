@@ -669,18 +669,35 @@ router.delete('/remove', authenticate, async (req, res) => {
             })
             return
         }
-
+        
         const fullPath = path.join(path.resolve(__dirname, '../../'), carData.img); // Construct the full file path
-
-        await fs.unlink(fullPath);
+        fs.access(fullPath)
+            .then(() => {
+                return fs.unlink(fullPath);
+            })
+            .then(() => {
+                console.log(`File unlinked successfully at path: ${fullPath}`);
+            })
+            .catch((err) => {
+                console.error(`Error while trying to unlink the file at path: ${fullPath}`, err);
+            });
 
         // console.log({carData})
         const gallery = carData.Galleries
 
         gallery.map( async (x) => {
             const galleryPath = path.join(path.resolve(__dirname, '../../'), x.path); // Construct the full file path
+            fs.access(galleryPath)
+                .then(() => {
+                    return fs.unlink(galleryPath);
+                })
+                .then(() => {
+                    console.log(`File unlinked successfully at path: ${galleryPath}`);
+                })
+                .catch((err) => {
+                    console.error(`Error while trying to unlink the file at path: ${galleryPath}`, err);
+                });
 
-            await fs.unlink(galleryPath);
             await CarGallery.destroy({where: {id: x.CarGallery.id}})
             await Gallery.destroy({where: {id: x.id}})
         })

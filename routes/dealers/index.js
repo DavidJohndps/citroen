@@ -530,18 +530,13 @@ router.delete('/remove', authenticate, async (req, res) => {
                         attributes:['id']
                     }
                 },
-                // {
-                //     model: Car,
-                //     as: 'Cars',
-                //     attributes: {
-                //         exclude: ['price']
-                //     },
-                //     through: {
-                //         model: CarDealer,
-                //         as: 'Dealer Price',
-                //         attributes:['id', 'price']
-                //     }
-                // },
+                {
+                    model: Gallery,
+                    through: {
+                        model: DealerGallery,
+                        attributes:['id']
+                    }
+                }
             ]
         })
 
@@ -552,10 +547,31 @@ router.delete('/remove', authenticate, async (req, res) => {
             }).status(401);
         }
 
-        for (const dealerFacility of dealerData.Facilities) {
-            const {DealerFacility: {id}} = dealerFacility
-            await DealerFacility.destroy({where: {id}})
-        }
+        // for (const dealerFacility of dealerData.Facilities) {
+        //     const {DealerFacility: {id}} = dealerFacility
+        //     await DealerFacility.destroy({where: {id}})
+        // }
+
+        console.log(dealerData)
+
+        if (dealerData.Galleries.length !== 0)
+            for (const gallery of dealerData.Galleries) {
+                const {DealerGallery: {id}} = gallery
+                const fullPath = path.join(path.resolve(__dirname, '../../'), gallery.path); // Construct the full file path
+                // console.log({path: gallery.path, fullPath})
+                fs.access(fullPath)
+                    .then(() => {
+                        return fs.unlink(fullPath);
+                    })
+                    .then(() => {
+                        console.log(`File unlinked successfully at path: ${fullPath}`);
+                    })
+                    .catch((err) => {
+                        console.error(`Error while trying to unlink the file at path: ${fullPath}`, err);
+                    });
+                await DealerFacility.destroy({where: {id}})
+            }
+
 
         // for (const dealerCar of dealerData.Cars) {
         //     const {id} = dealerCar['Dealer Price']
