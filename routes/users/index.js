@@ -21,7 +21,7 @@ router.get('/', async (req, res) => {
             ...payload,
             ...rest,
             attributes: {
-            exclude: ['username', 'password']
+            exclude: ['password']
         }});
     
         res.send({
