@@ -580,7 +580,16 @@ router.delete('/remove', authenticate, async (req, res) => {
 
         const fullPath = path.join(path.resolve(__dirname, '../../'), dealerData.img); // Construct the full file path
 
-        await fs.unlink(fullPath);
+        fs.access(fullPath)
+            .then(() => {
+                return fs.unlink(fullPath);
+            })
+            .then(() => {
+                console.log(`File unlinked successfully at path: ${fullPath}`);
+            })
+            .catch((err) => {
+                console.error(`Error while trying to unlink the file at path: ${fullPath}`, err);
+            });
 
         await Dealer.destroy({
             where:{
