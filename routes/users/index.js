@@ -102,12 +102,25 @@ router.patch('/change', authenticate, upload.single('profile_picture'), async (r
         })
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        await User.update({...rest, password: hashedPassword ,profile_picture: file.path, role}, {where: { id }})
-
+        const payload = {
+            ...rest,
+            role,
+            password: hashedPassword,
+        }
+        if (file) payload.profile_picture = file.path
         const fullPath = path.join(path.resolve(__dirname, '../../'), userData.profile_picture); // Construct the full file path
+        fs.access(fullPath)
+            .then(() => {
+                return fs.unlink(fullPath);
+            })
+            .then(() => {
+                console.log(`File unlinked successfully at path: ${fullPath}`);
+            })
+            .catch((err) => {
+                console.error(`Error while trying to unlink the file at path: ${fullPath}`, err);
+            });
+        await User.update(payload, {where: { id }})
 
-        await fs.access(fullPath);
-        await fs.unlink(fullPath);
 
         res.send({
             success: true,
@@ -127,7 +140,6 @@ router.delete('/remove', authenticate, async (req, res) => {
         const {body: data, user} = req
         const { id } = data
 
-        console.log({id})
         const userData = await User.findOne({
             where: {
                 id
@@ -144,7 +156,16 @@ router.delete('/remove', authenticate, async (req, res) => {
 
         const fullPath = path.join(path.resolve(__dirname, '../../'), userData.profile_picture); // Construct the full file path
 
-        await fs.unlink(fullPath);
+        fs.access(fullPath)
+            .then(() => {
+                return fs.unlink(fullPath);
+            })
+            .then(() => {
+                console.log(`File unlinked successfully at path: ${fullPath}`);
+            })
+            .catch((err) => {
+                console.error(`Error while trying to unlink the file at path: ${fullPath}`, err);
+            });
 
         await User.destroy({
             where:{

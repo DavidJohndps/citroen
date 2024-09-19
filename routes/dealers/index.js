@@ -552,8 +552,6 @@ router.delete('/remove', authenticate, async (req, res) => {
         //     await DealerFacility.destroy({where: {id}})
         // }
 
-        console.log(dealerData)
-
         if (dealerData.Galleries.length !== 0)
             for (const gallery of dealerData.Galleries) {
                 const {DealerGallery: {id}} = gallery
