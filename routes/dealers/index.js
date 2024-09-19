@@ -201,6 +201,8 @@ router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 
             await DealerFacility.create({facilityId: facility.id, dealerId: dealer.id})
         }
 
+        console.log({files})
+
         if (files && files.length !== 0) {
             // return res.send({
             //     success: false,
