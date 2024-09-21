@@ -234,7 +234,7 @@ router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 
 
 router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCount: 1}, {name: 'galleries'}]), async (req, res) => {
     try {
-        const {body: data, user, files: {img: [file], galleries: files}} = req
+        const {body: data, user, files: {img: file, galleries: files}} = req
         const {id, pic, head, service, sales, facility, provinceId, workingHours, cityId, ...rest} = data
 
         const facilities = JSON.parse(facility)
@@ -379,22 +379,25 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
             })
         }
 
-        if (!file) {
-            return res.send({
-                success: false,
-                message: 'Foto Dealer perlu ditambahkan'
-            })
-        }
+        console.log(workingHour)
 
         const payload = {
             ...rest, pic, head, sales, service, provinceId, cityId, workingHours: workingHour
         }
 
-        if (file) {
-            payload.img = file.path
+        if (file?.length === 1) {
+            payload.img = file[0].path
             const fullPath = path.join(path.resolve(__dirname, '../../'), dealerData.img); // Construct the full file path
-
-            await fs.unlink(fullPath);
+            fs.access(fullPath)
+                .then(() => {
+                    return fs.unlink(fullPath);
+                })
+                .then(() => {
+                    console.log(`File unlinked successfully at path: ${fullPath}`);
+                })
+                .catch((err) => {
+                    console.error(`Error while trying to unlink the file at path: ${fullPath}`, err);
+                });
         }
 
         await Dealer.update(payload, {where: {id}});
@@ -408,14 +411,12 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
         }
 
         if (files && files?.length !== 0) {
-            console.log(files)
             // return res.send({
             //     success: false,
             //     message: 'Foto warna mobil perlu ditambahkan'
             // }).status(403);
 
             files.map( async gallery => {
-
                 const path = gallery.path
                 const galleryData = await Gallery.create({path});
                 await DealerGallery.create({dealerId: id, galleryId: galleryData.id})
@@ -495,7 +496,16 @@ router.patch('/deleteGallery', authenticate, async(req, res) => {
         
         const fullPath = path.join(path.resolve(__dirname, '../../'), gallery.path); // Construct the full file path
 
-        await fs.unlink(fullPath);
+        fs.access(fullPath)
+            .then(() => {
+                return fs.unlink(fullPath);
+            })
+            .then(() => {
+                console.log(`File unlinked successfully at path: ${fullPath}`);
+            })
+            .catch((err) => {
+                console.error(`Error while trying to unlink the file at path: ${fullPath}`, err);
+            });
 
         await DealerGallery.destroy({where: {galleryId}});
 
