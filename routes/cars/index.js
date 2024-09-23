@@ -63,7 +63,7 @@ router.get('/', async (req, res) => {
                 // Car prices in each region
                 {
                   model: Gallery,
-                  attributes: ['name'],
+                  attributes: ['name', 'path'],
                   through: {
                     model: CarGallery,
                     attributes: ['type', 'price']
