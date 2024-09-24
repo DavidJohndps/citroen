@@ -177,7 +177,7 @@ router.post('/add', authenticate, async (req, res) => {
             return acc
         }, {totalPrice: 0})
 
-        await CarService.create({carId: car.id, serviceId: service.id, part: JSON.parse(part), price: totalPrice})
+        await CarService.create({carId: car.id, serviceId: service.id, part: JSON.parse(part), price: totalPrice * 1.11})
         
 
         res.send({
@@ -264,7 +264,7 @@ router.patch('/change', authenticate, async (req, res) => {
             return acc
         }, {totalPrice: 0})
 
-        await CarService.update({carId, serviceId, part: parsedPart, price: totalPrice}, {where: {id}})
+        await CarService.update({carId, serviceId, part: parsedPart, price: totalPrice * 1.11}, {where: {id}})
 
         res.send({
             success: true,

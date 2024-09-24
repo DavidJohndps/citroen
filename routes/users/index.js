@@ -44,7 +44,7 @@ router.post('/add', authenticate, upload.single('profile_picture'), async (req, 
 
         // role 0: admin, role 1:head, role 2:staff
         if (role <= user.role) {
-            res.send({
+            return res.send({
                 success: false,
                 message: 'Anda tidak memiliki akses untuk membuat akun tersebut'
             }).status(401);
@@ -52,7 +52,7 @@ router.post('/add', authenticate, upload.single('profile_picture'), async (req, 
         }
 
         if(!file) {
-            res.send({
+            return res.send({
                 success: false,
                 message: 'Foto profil perlu ditambahkan'
             }).status(403);
