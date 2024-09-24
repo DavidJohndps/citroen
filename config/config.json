@@ -16,10 +16,10 @@
     "port": 3306
   },
   "production": {
-    "username": "root",
-    "password": null,
+    "username": "user_app_citroen",
+    "password": "Citro3EnDbV3SFullxx231",
     "database": "citroen",
-    "host": "127.0.0.1",
+    "host": "103.82.240.247",
     "dialect": "mysql",
     "port": 3306
   }
