@@ -63,7 +63,7 @@ router.get('/', async (req, res) => {
                 // Car prices in each region
                 {
                   model: Gallery,
-                  attributes: ['name', 'path'],
+                  attributes: ['id', 'name', 'path'],
                   through: {
                     model: CarGallery,
                     attributes: ['type', 'price']
@@ -315,23 +315,29 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
         }
 
         if(!id) {
-            res.send({
+            return res.send({
                 success: false,
                 message: 'ID mobil tidak ditemukan'
             })
         }
 
         // if (files.length === 0 && newColors) {
-        //     res.send({
+        //     return res.send({
         //         success: false,
         //         message: 'Foto warna mobil perlu ditambahkan'
         //     }).status(403);
         // }
 
         if (files.length !== 0 && !newColors) {
-            res.send({
+            return res.send({
                 success: false,
                 message: 'Nama Foto warna mobil perlu ditambahkan'
+            }).status(403);
+        }
+        if (files.length !== newColors.length) {
+            return res.send({
+                success: false,
+                message: 'Jumlah Foto warna mobil dan Harga warna mobil tidak sesuai'
             }).status(403);
         }
 
@@ -605,6 +611,12 @@ router.patch('/deleteGallery', authenticate, async(req, res) => {
                 message: 'Salah satu Gallery mobil tersebut tidak ditemukan'
             })
         }
+        console.log({deleteColors, car})
+
+        return res.send({
+            success: false,
+            message: 'In Debug Mode'
+        }).status(401)
         deleteColors.map(async (x) => {
             await CarGallery.destroy({
                 where: {

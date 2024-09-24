@@ -75,6 +75,48 @@ router.get('/', async (req, res) => {
         }).status(error.code)
     }
 });
+router.get('/admin', async (req, res) => {
+    try {
+        
+        const {query: {limit, offset, id,...rest}} = req
+    
+
+        const payload = {
+            limit: parseInt(limit) || 10,
+            offset: parseInt(offset) || 0,
+        }
+        if (id) payload.where = {id}
+        const data = await CarService.findAll({
+            ...payload,
+            ...rest,
+            include: [
+                {
+                    model: Car,
+                    attributes: {
+                        exclude: ['createdAt', 'updatedAt']
+                    }
+                },
+                {
+                    model: Service,
+                    attributes: {
+                        exclude: ['createdAt', 'updatedAt']
+                    }
+                }
+            ]
+        });
+    
+        res.send({
+            success: true,
+            data
+        }).status(200);
+    } catch (error) {
+        console.log({error})
+        res.send({
+            success: false,
+            message: error.message
+        }).status(error.code)
+    }
+});
 
 router.post('/add', authenticate, async (req, res) => {
     try {
@@ -151,7 +193,7 @@ router.post('/add', authenticate, async (req, res) => {
     }
 })
 
-router.post('/change', authenticate, async (req, res) => {
+router.patch('/change', authenticate, async (req, res) => {
     try {
         const {body: data, user} = req
         const {id, carId, serviceId, part} = data
@@ -222,7 +264,7 @@ router.post('/change', authenticate, async (req, res) => {
             return acc
         }, {totalPrice: 0})
 
-        await CarService.update({carId, serviceId, part: JSON.parse(part), price: totalPrice}, {where: {id}})
+        await CarService.update({carId, serviceId, part: parsedPart, price: totalPrice}, {where: {id}})
 
         res.send({
             success: true,

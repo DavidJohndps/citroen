@@ -11,7 +11,6 @@ module.exports = {
      */
     await queryInterface.changeColumn('Users', 'phone_number',{ 
       type: Sequelize.STRING,
-      unique: false,
       allowNull: false
     });
   },
