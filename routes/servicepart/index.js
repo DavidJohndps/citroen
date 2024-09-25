@@ -46,6 +46,8 @@ router.get('/', async (req, res) => {
         }
         if (id) payload.where = {id}
         const data = await Car.findAll({
+            ...rest,
+            ...payload,
             include: [
                 {
                     model: Service,
