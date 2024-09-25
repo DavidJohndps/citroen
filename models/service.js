@@ -13,6 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       Service.belongsToMany(models.Car, {
         through: 'CarService',
+        as: 'Services',
         foreignKey: 'serviceId',
         type: DataTypes.UUID
       })

@@ -35,7 +35,14 @@ router.get('/', async (req, res) => {
                 },
                 {
                     model: User,
-                    as: 'Customer Service',
+                    as: 'Sales Head',
+                    attributes: {
+                        exclude: ['id', 'password', 'role']
+                    }
+                },
+                {
+                    model: User,
+                    as: 'Service Head',
                     attributes: {
                         exclude: ['id', 'password', 'role']
                     }
@@ -91,13 +98,7 @@ router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 
             }).status(401);
         }
 
-        const picUser = await User.findOne({
-            where: {
-                id: pic
-            }
-        })
-
-        if(!picUser) {
+        if(!pic) {
             return res.send({
                 success: false,
                 message: 'Akun PIC Tidak Ditemukan'
@@ -281,13 +282,7 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
             ]
         })
 
-        const picUser = await User.findOne({
-            where: {
-                id: pic
-            }
-        })
-
-        if(!picUser) {
+        if(!pic) {
             return res.send({
                 success: false,
                 message: 'Akun PIC Tidak Ditemukan'

@@ -10,13 +10,15 @@ const {User} = require('../../models')
 
 router.get('/', async (req, res) => {
     try {
-        const {query: {limit, offset, id, ...rest}} = req
+        const {query: {limit, offset, id, role, ...rest}} = req
 
         const payload = {
             limit: parseInt(limit) || 10,
             offset: parseInt(offset) || 0,
         }
         if (id) payload.where = {id}
+        if (role) payload.where = {role}
+        console.log(payload)
         const data = await User.findAll({
             ...payload,
             ...rest,

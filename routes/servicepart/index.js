@@ -46,11 +46,10 @@ router.get('/', async (req, res) => {
         }
         if (id) payload.where = {id}
         const data = await Car.findAll({
-            ...payload,
-            ...rest,
             include: [
                 {
                     model: Service,
+                    as: 'Services',
                     attributes: {
                         exclude: ['createdAt', 'updatedAt']
                     },
@@ -58,11 +57,12 @@ router.get('/', async (req, res) => {
                         as: 'List Breakdown',
                         model: CarService,
                         attributes: ['id','part', 'price']
-                    }
-                }
-            ]
+                    },
+                    order: [['period', 'ASC']],
+                },
+            ],
         });
-    
+        
         res.send({
             success: true,
             data

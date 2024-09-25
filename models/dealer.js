@@ -32,12 +32,6 @@ module.exports = (sequelize, DataTypes) => {
         }
       })
       Dealer.belongsTo(models.User, {
-        as: 'Customer Service',
-        foreignKey: {
-          name: 'pic'
-        }
-      })
-      Dealer.belongsTo(models.User, {
         as: 'Dealer Head',
         foreignKey: {
           name: 'head'

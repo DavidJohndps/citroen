@@ -21,6 +21,7 @@ module.exports = (sequelize, DataTypes) => {
         }
       })
       Car.belongsToMany(models.Service, {
+        as: 'Services',
         through: 'CarService',
         foreignKey: 'carId',
       })
