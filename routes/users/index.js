@@ -18,7 +18,6 @@ router.get('/', async (req, res) => {
         }
         if (id) payload.where = {id}
         if (role) payload.where = {role}
-        console.log(payload)
         const data = await User.findAll({
             ...payload,
             ...rest,
