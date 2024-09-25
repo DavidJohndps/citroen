@@ -196,8 +196,11 @@ router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 
                 message: 'Foto Dealer perlu ditambahkan'
             })
         }
-        
-        const dealer = await Dealer.create({...rest, pic, head, service, sales, provinceId, cityId, workingHours: workingHour, img: file.path});
+        const payload = {...rest, pic, provinceId, cityId, workingHours: workingHour, img: file.path}
+        if(head) payload.head = head
+        if(service) payload.service = service
+        if(sales) payload.sales = sales
+        const dealer = await Dealer.create(payload);
         for (const facility of facilityData) {
             await DealerFacility.create({facilityId: facility.id, dealerId: dealer.id})
         }
