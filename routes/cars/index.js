@@ -303,8 +303,8 @@ router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 
 
 router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCount: 1}, {name: 'colorImg'}]), async (req, res) => {
     try {
-        const {body: data, user, files: {img: [file], colorImg: files}} = req
-        const {newColors, colors, accessory, price, ...rest} = data
+        const {body: data, user, files: {img: file, colorImg: files}} = req
+        const {id, newColors, colors, accessory, price, ...rest} = data
 
         // Catcher
         if (user.role !== '0') {
@@ -327,14 +327,19 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
         //         message: 'Foto warna mobil perlu ditambahkan'
         //     }).status(403);
         // }
+        // parsing all the stringified data
+        const parsedColors = JSON.parse(colors)
+        const parsedNewColors = JSON.parse(newColors)
+        const parsedAccessory = JSON.parse(accessory)
+        const parsedPrice = JSON.parse(price)
 
-        if (files.length !== 0 && !newColors) {
+        if (files.length !== 0 && !parsedNewColors) {
             return res.send({
                 success: false,
                 message: 'Nama Foto warna mobil perlu ditambahkan'
             }).status(403);
         }
-        if (files.length !== newColors.length) {
+        if (files.length !== parsedNewColors.length) {
             return res.send({
                 success: false,
                 message: 'Jumlah Foto warna mobil dan Harga warna mobil tidak sesuai'
@@ -369,12 +374,6 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
             })
         }
 
-        // parsing all the stringified data
-        const parsedColors = JSON.parse(colors)
-        const parsedNewColors = JSON.parse(newColors)
-        const parsedAccessory = JSON.parse(accessory)
-        const parsedPrice = JSON.parse(price)
-
         const provinces = parsedPrice.reduce((acc, item) => {
             const {provinceId} = item
             // const provinceIds = prices.map(x => x.provinceId)
@@ -400,7 +399,7 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
             acc.push(galleryId)
             return acc
         }, [])
-        const galleryData = await Gallery.findAll({where: { id: { [Op.in]: carGalleryIds }, carId: id}})
+        const galleryData = await Gallery.findAll({where: { id: { [Op.in]: carGalleryIds }}})
         const galleryMapped = galleryData.reduce((acc, item) => {
             const key = item.id
             if (!acc[key]) acc[key] = item
@@ -438,7 +437,7 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
 
         // updating saved color data
         parsedColors.map(async pricing => {
-            const {id: galleryId, name, category, prices} = pricing
+            const {id: galleryId, name, category, price: prices} = pricing
             const mapped = prices.map(x => {
                 if (!x.provinceId) {
                     return res.send({
@@ -547,8 +546,8 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
             price: mappedPrice,
             accessory: mappedAccessory
         }
-
-        if (file) payload.img = file.path
+        
+        if (file[0]) payload.img = file[0].path
 
         await Car.update({...payload}, {where: id});
         await CarGallery.bulkCreate(carGalleryPayload.map(x => {
@@ -611,12 +610,7 @@ router.patch('/deleteGallery', authenticate, async(req, res) => {
                 message: 'Salah satu Gallery mobil tersebut tidak ditemukan'
             })
         }
-        console.log({deleteColors, car})
 
-        return res.send({
-            success: false,
-            message: 'In Debug Mode'
-        }).status(401)
         deleteColors.map(async (x) => {
             await CarGallery.destroy({
                 where: {
@@ -626,19 +620,44 @@ router.patch('/deleteGallery', authenticate, async(req, res) => {
             })
             
             const gallery = car.Galleries.find(y => y.id === x)
+            const fullPath = path.join(path.resolve(__dirname, '../../'), gallery.path); // Construct the full file path
+            fs.access(fullPath)
+                .then(() => {
+                    return fs.unlink(fullPath);
+                })
+                .then(() => {
+                    console.log(`File unlinked successfully at path: ${fullPath}`);
+                })
+                .catch((err) => {
+                    console.error(`Error while trying to unlink the file at path: ${fullPath}`, err);
+                });
             await Gallery.destroy({
                 where: {
                     id: gallery.id
                 }
             })
-            const fullPath = path.join(path.resolve(__dirname, '../../'), gallery.path); // Construct the full file path
+        })
 
-            await fs.unlink(fullPath);
+        const updated = await Car.findOne({
+            where: {
+                id
+            },
+            include: [
+                {
+                    model: Gallery,
+                    attributes: ['id', 'name', 'path'],
+                    through: {
+                      model: CarGallery,
+                      attributes: ['type', 'price']
+                    },
+                },
+            ]
         })
 
         return res.status(200).send({
             success: true,
-            message: `Gallery Mobil ${deleteColors.toString()} berhasil didelete`
+            message: `Gallery Mobil ${deleteColors.toString()} berhasil didelete`,
+            data: updated
         })
     } catch (error) {
         console.log(error)
