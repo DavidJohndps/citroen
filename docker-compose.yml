@@ -11,7 +11,7 @@ services:
     networks:
       - network-citroen-api-dashboard  # Connects the service to the specified network
     volumes:
-      - box:/app/public/uploads  # Mount the 'box' volume to '/app/public/uploads'
+      - box:/app/public  # Mount the 'box' volume to '/app/public/uploads'
 
 volumes:
   box:
