@@ -301,9 +301,9 @@ router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 
     }
 })
 
-router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCount: 1}, {name: 'colorImg'}]), async (req, res) => {
+router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCount: 1}, {name: 'colorImg'}, {name: 'oldImg'}]), async (req, res) => {
     try {
-        const {body: data, user, files: {img: file, colorImg: files}} = req
+        const {body: data, user, files: {img: file, colorImg: files, oldImg: updateFiles}} = req
         const {id, newColors, colors, accessory, price, ...rest} = data
 
         // Catcher
@@ -333,6 +333,10 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
         const parsedAccessory = JSON.parse(accessory)
         const parsedPrice = JSON.parse(price)
 
+        // return res.send({
+        //     success: false,
+        //     message: 'In Debug Mode',
+        // }).status(401)
         if (files.length !== 0 && !parsedNewColors) {
             return res.send({
                 success: false,
@@ -437,7 +441,7 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
 
         // updating saved color data
         parsedColors.map(async pricing => {
-            const {id: galleryId, name, category, price: prices} = pricing
+            const {id: galleryId, name, category, price: prices, img: {exist, name: fileName}} = pricing
             const mapped = prices.map(x => {
                 if (!x.provinceId) {
                     return res.send({
@@ -457,7 +461,7 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
                     provinceName: province
                 }
             })
-            if (!galleryId || galleryMapped[galleryId]) {
+            if (!galleryId || !galleryMapped[galleryId]) {
                 return res.send({
                     success: false,
                     message: 'Gallery tidak ditemukan'
@@ -469,8 +473,27 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
                     message: 'Detail Gallery tidak ditemukan'
                 })
             }
+            const payload = {
+                name
+            }
             const carGallery = carGalleryMapped[galleryId]
-            await Gallery.update({name}, {
+            const newPath = updateFiles.find(x => x.originalName === fileName)
+            if(exist && newPath) {
+                const gallery = galleryMapped[galleryId]
+                const fullPath = path.join(path.resolve(__dirname, '../../'), gallery.path); // Construct the full file path
+                fs.access(fullPath)
+                    .then(() => {
+                        return fs.unlink(fullPath);
+                    })
+                    .then(() => {
+                        console.log(`File unlinked successfully at path: ${fullPath}`);
+                    })
+                    .catch((err) => {
+                        console.error(`Error while trying to unlink the file at path: ${fullPath}`, err);
+                    });
+                payload.path = newPath.path
+            }
+            await Gallery.update(payload, {
                 where: {
                     id: galleryId
                 }
@@ -482,8 +505,8 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
         
         // creating new color
         const carGalleryPayload = []
-        const mappedColor = parsedNewColors.map( async (pricing, index) => {
-            const {name, category, prices} = pricing
+        const mappedColor = parsedNewColors.map( async pricing => {
+            const {name, category, prices, img: {exist, fileName}} = pricing
             const mapped = prices.map(x => {
                 if (!x.provinceId) {
                     return res.send({
@@ -503,9 +526,11 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
                     provinceName: province
                 }
             })
-            const path = files[index].path
-            const gallery = await Gallery.create({name, path});
-            carGalleryPayload.push({carId: null, galleryId: gallery.id, type: category, price: prices})
+            const path = files.find(x => x.originalName === fileName)
+            if (exist && path) {
+                const gallery = await Gallery.create({name, path: path.path});
+                carGalleryPayload.push({carId: null, galleryId: gallery.id, type: category, price: prices})
+            }
             return {
                 name,
                 prices: mapped,
@@ -547,7 +572,21 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
             accessory: mappedAccessory
         }
         
-        if (file[0]) payload.img = file[0].path
+        if (file && file[0]) {
+            const fullPath = path.join(path.resolve(__dirname, '../../'), carData.img); // Construct the full file path
+            fs.access(fullPath)
+                .then(() => {
+                    return fs.unlink(fullPath);
+                })
+                .then(() => {
+                    console.log(`File unlinked successfully at path: ${fullPath}`);
+                })
+                .catch((err) => {
+                    console.error(`Error while trying to unlink the file at path: ${fullPath}`, err);
+                });
+            payload.img = file[0].path
+        }
+        
 
         await Car.update({...payload}, {where: id});
         await CarGallery.bulkCreate(carGalleryPayload.map(x => {
@@ -612,12 +651,6 @@ router.patch('/deleteGallery', authenticate, async(req, res) => {
         }
 
         deleteColors.map(async (x) => {
-            await CarGallery.destroy({
-                where: {
-                    carId: car.id,
-                    galleryId: x
-                }
-            })
             
             const gallery = car.Galleries.find(y => y.id === x)
             const fullPath = path.join(path.resolve(__dirname, '../../'), gallery.path); // Construct the full file path
@@ -634,6 +667,12 @@ router.patch('/deleteGallery', authenticate, async(req, res) => {
             await Gallery.destroy({
                 where: {
                     id: gallery.id
+                }
+            })
+            await CarGallery.destroy({
+                where: {
+                    carId: car.id,
+                    galleryId: x
                 }
             })
         })
