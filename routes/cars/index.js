@@ -256,9 +256,9 @@ router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 
 
         // console.log(JSON.parse(payload.accessory), JSON.parse(car.accessory))
     } catch (error) {
-        console.log(error)
+        console.log(error.message)
         // await transaction.rollback()
-        res.send({
+        return res.send({
             success: false,
             message: error.message
         })
