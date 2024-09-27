@@ -89,7 +89,7 @@ router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 
     // const transaction = await sequelize.Transaction()
     try {
         const {body: data, user, files: {img: [file], colorImg: files}} = req
-        const {colors, accessory, price, ...rest} = data
+        const {colors, accessory, ...rest} = data
 
         if (user.role !== '0') {
             return res.send({
@@ -136,19 +136,6 @@ router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 
             return res.send({
                 success: false,
                 message: "Format Harga Warna per Region tidak sesuai"
-            })
-        }
-        if(!price) {
-            return res.send({
-                success: false,
-                message: 'Harga per Region perlu ditambahkan'
-            })
-        }
-
-        if(!isValid(price)) {
-            return res.send({
-                success: false,
-                message: "Format Harga Region tidak sesuai"
             })
         }
 
