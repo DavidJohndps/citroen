@@ -300,31 +300,17 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
         //     success: false,
         //     message: 'In Debug Mode',
         // }).status(401)
-        if (files.length !== 0 && !parsedNewColors) {
+        if (files && files?.length !== 0 && !parsedNewColors) {
             return res.send({
                 success: false,
                 message: 'Nama Foto warna mobil perlu ditambahkan'
             }).status(403);
         }
-        if (files.length !== parsedNewColors.length) {
+        if (files && files?.length !== parsedNewColors?.length) {
             return res.send({
                 success: false,
                 message: 'Jumlah Foto warna mobil dan Harga warna mobil tidak sesuai'
             }).status(403);
-        }
-
-        if(!price) {
-            return res.send({
-                success: false,
-                message: 'Harga per Region perlu ditambahkan'
-            })
-        }
-
-        if(!isValid(price)) {
-            return res.send({
-                success: false,
-                message: "Format Harga Region tidak sesuai"
-            })
         }
 
         // find particular car data
@@ -341,10 +327,12 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
             })
         }
 
-        const provinces = parsedColors.reduce((acc, item) => {
-            const {provinceId} = item
-            // const provinceIds = prices.map(x => x.provinceId)
-            acc.push(provinceId)
+        const combined = [...parsedColors, ...parsedAccessory]
+        const provinces = combined.reduce((acc, item) => {
+            const {prices} = item
+            prices.map(x => {
+                if (!acc.includes(x.provinceId)) acc.push(x.provinceId)
+            })
             return acc
         }, [])
 
