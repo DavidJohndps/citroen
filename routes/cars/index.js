@@ -369,7 +369,7 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
 
         // updating saved color data
         parsedColors.map(async pricing => {
-            const {id: galleryId, name, category, price: prices, img: {exist, name: fileName}} = pricing
+            const {id: galleryId, name, category, prices, img: {exist, name: fileName}} = pricing
             const mapped = prices.map(x => {
                 if (!x.provinceId) {
                     return res.send({
