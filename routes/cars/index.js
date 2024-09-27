@@ -149,11 +149,12 @@ router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 
         // parsing all the stringified data
         const parsedColors = JSON.parse(colors)
         const parsedAccessory = JSON.parse(accessory)
-
-        const provinces = parsedColors.reduce((acc, item) => {
-            const {provinceId} = item
-            // const provinceIds = prices.map(x => x.provinceId)
-            acc.push(provinceId)
+        const combined = [...parsedColors, ...parsedAccessory]
+        const provinces = combined.reduce((acc, item) => {
+            const {prices} = item
+            prices.map(x => {
+                if (!acc.includes(x.provinceId)) acc.push(x.provinceId)
+            })
             return acc
         }, [])
 
@@ -187,7 +188,7 @@ router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 
                         message: 'Format harga tidak sesuai, tidak ada harga'
                     }).status(500)
                 }
-                const province = provinceMap[x.provinceId].name
+                const province = provinceMap[x.provinceId]?.name
                 return {
                     ...x,
                     provinceName: province
