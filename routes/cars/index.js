@@ -162,9 +162,8 @@ router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 
         // parsing all the stringified data
         const parsedColors = JSON.parse(colors)
         const parsedAccessory = JSON.parse(accessory)
-        const parsedPrice = JSON.parse(price)
 
-        const provinces = parsedPrice.reduce((acc, item) => {
+        const provinces = parsedColors.reduce((acc, item) => {
             const {provinceId} = item
             // const provinceIds = prices.map(x => x.provinceId)
             acc.push(provinceId)
@@ -185,28 +184,6 @@ router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 
         }, {})
 
         // verify all parsed json have valid property
-        const mappedPrice = parsedPrice.map(pricing => {
-            const {provinceId, price} = pricing
-            if (!provinceId) {
-                return res.send({
-                    success: false,
-                    message: 'Format harga tidak sesuai, tidak ada provinsi'
-                }).status(500)
-            }
-            if (!price) {
-                return res.send({
-                    success: false,
-                    message: 'Format harga tidak sesuai, tidak ada harga'
-                }).status(500)
-            }
-            const province = provinceMap[provinceId].name
-            return {
-                provinceId,
-                name: province,
-                price
-            }
-        })
-        
         const carGalleryPayload = []
         const mappedColor = parsedColors.map( async (pricing, index) => {
             const {name, category, prices} = pricing
@@ -270,7 +247,6 @@ router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 
 
         const payload = {
             ...rest,
-            price: mappedPrice,
             accessory: mappedAccessory,
             img: file.path
         }
@@ -304,7 +280,7 @@ router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 
 router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCount: 1}, {name: 'colorImg'}, {name: 'oldImg'}]), async (req, res) => {
     try {
         const {body: data, user, files: {img: file, colorImg: files, oldImg: updateFiles}} = req
-        const {id, newColors, colors, accessory, price, ...rest} = data
+        const {id, newColors, colors, accessory, ...rest} = data
 
         // Catcher
         if (user.role !== '0') {
@@ -331,7 +307,6 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
         const parsedColors = JSON.parse(colors)
         const parsedNewColors = JSON.parse(newColors)
         const parsedAccessory = JSON.parse(accessory)
-        const parsedPrice = JSON.parse(price)
 
         // return res.send({
         //     success: false,
@@ -378,7 +353,7 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
             })
         }
 
-        const provinces = parsedPrice.reduce((acc, item) => {
+        const provinces = parsedColors.reduce((acc, item) => {
             const {provinceId} = item
             // const provinceIds = prices.map(x => x.provinceId)
             acc.push(provinceId)
@@ -415,29 +390,6 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
             if (!acc[key]) acc[key] = item
             return acc
         }, {})
-
-        // verify all parsed json have valid property
-        const mappedPrice = parsedPrice.map(pricing => {
-            const {provinceId, price} = pricing
-            if (!provinceId) {
-                return res.send({
-                    success: false,
-                    message: 'Format harga tidak sesuai, tidak ada provinsi'
-                }).status(500)
-            }
-            if (!price) {
-                return res.send({
-                    success: false,
-                    message: 'Format harga tidak sesuai, tidak ada harga'
-                }).status(500)
-            }
-            const province = provinceMap[provinceId].name
-            return {
-                provinceId,
-                name: province,
-                price
-            }
-        })
 
         // updating saved color data
         parsedColors.map(async pricing => {
