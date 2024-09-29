@@ -411,7 +411,7 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
             }
             const carGallery = carGalleryMapped[galleryId]
             if (exist) {
-                const newPath = updateFiles.find(x => x.originalName === fileName)
+                const newPath = updateFiles.find(x => x.originalname === fileName)
                 if(newPath) {
                     const gallery = galleryMapped[galleryId]
                     const fullPath = path.join(path.resolve(__dirname, '../../'), gallery.path); // Construct the full file path
