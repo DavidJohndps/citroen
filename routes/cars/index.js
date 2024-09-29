@@ -461,10 +461,12 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
                     provinceName: province
                 }
             })
-            const path = files.find(x => x.originalName === fileName)
-            if (exist && path) {
-                const gallery = await Gallery.create({name, path: path.path});
-                carGalleryPayload.push({carId: null, galleryId: gallery.id, type: category, price: prices})
+            if (exist) {
+                const path = files.find(x => x.originalName === fileName)
+                if (path) {
+                    const gallery = await Gallery.create({name, path: path.path});
+                    carGalleryPayload.push({carId: null, galleryId: gallery.id, type: category, price: prices})
+                }
             }
             return {
                 name,
@@ -520,9 +522,8 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
                 });
             payload.img = file[0].path
         }
-        
 
-        await Car.update({...payload}, {where: id});
+        await Car.update({...payload}, {where: {id}});
         await CarGallery.bulkCreate(carGalleryPayload.map(x => {
             const {carId, ...rest} = x
             return {
