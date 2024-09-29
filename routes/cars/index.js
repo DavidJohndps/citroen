@@ -312,6 +312,11 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
                 message: 'Jumlah Foto warna mobil dan Harga warna mobil tidak sesuai'
             }).status(403);
         }
+        if(updateFiles && updateFiles.length !== parsedColors.filter(x =>!!x.img?.exist).length)
+            return res.send({
+                success: false,
+                message: 'Jumlah Foto warna mobil yang dirubah dan Harga warna mobil tidak sesuai'
+            })
 
         // find particular car data
         const carData = await Car.findOne({
@@ -405,21 +410,23 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
                 name
             }
             const carGallery = carGalleryMapped[galleryId]
-            const newPath = updateFiles.find(x => x.originalName === fileName)
-            if(exist && newPath) {
-                const gallery = galleryMapped[galleryId]
-                const fullPath = path.join(path.resolve(__dirname, '../../'), gallery.path); // Construct the full file path
-                fs.access(fullPath)
-                    .then(() => {
-                        return fs.unlink(fullPath);
-                    })
-                    .then(() => {
-                        console.log(`File unlinked successfully at path: ${fullPath}`);
-                    })
-                    .catch((err) => {
-                        console.error(`Error while trying to unlink the file at path: ${fullPath}`, err);
-                    });
-                payload.path = newPath.path
+            if (exist) {
+                const newPath = updateFiles.find(x => x.originalName === fileName)
+                if(newPath) {
+                    const gallery = galleryMapped[galleryId]
+                    const fullPath = path.join(path.resolve(__dirname, '../../'), gallery.path); // Construct the full file path
+                    fs.access(fullPath)
+                        .then(() => {
+                            return fs.unlink(fullPath);
+                        })
+                        .then(() => {
+                            console.log(`File unlinked successfully at path: ${fullPath}`);
+                        })
+                        .catch((err) => {
+                            console.error(`Error while trying to unlink the file at path: ${fullPath}`, err);
+                        });
+                    payload.path = newPath.path
+                }
             }
             await Gallery.update(payload, {
                 where: {
