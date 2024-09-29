@@ -503,7 +503,6 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
 
         const payload = {
             ...rest,
-            price: mappedPrice,
             accessory: mappedAccessory
         }
         
