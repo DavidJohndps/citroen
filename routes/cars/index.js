@@ -5,7 +5,7 @@ const fs = require('fs').promises;
 
 const {authenticate, uploadGallery, upload} = require('../../middleware')
 
-const {Car, CarGallery, Gallery, Province} = require('../../models');
+const {Car, CarGallery, CarService, Gallery, Province} = require('../../models');
 const { Op } = require('sequelize');
 const sequelize = require('sequelize')
 
@@ -706,6 +706,8 @@ router.delete('/remove', authenticate, async (req, res) => {
             await CarGallery.destroy({where: {id: x.CarGallery.id}})
             await Gallery.destroy({where: {id: x.id}})
         })
+
+        await CarService.destory({where: {carId: id}});
 
         await Car.destroy({
             where:{
