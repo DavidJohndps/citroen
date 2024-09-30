@@ -508,7 +508,7 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
             accessory: mappedAccessory
         }
         
-        if (file && file[0]) {
+        if (Array.isArray(file) && file[0]) {
             const fullPath = path.join(path.resolve(__dirname, '../../'), carData.img); // Construct the full file path
             fs.access(fullPath)
                 .then(() => {
