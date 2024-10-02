@@ -53,7 +53,11 @@ module.exports = (sequelize, DataTypes) => {
     accessory: {
       type: DataTypes.JSON,
       allowNull: false
-    }
+    },
+    note: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
   }, {
     sequelize,
     modelName: 'Car',

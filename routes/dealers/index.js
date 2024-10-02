@@ -11,12 +11,19 @@ const { Op } = require('sequelize');
 router.get('/', async (req, res) => {
     try {
         
-        const {query: {limit, offset, ...rest}} = req
+        const {query: {limit, offset, provinceId, ...rest}} = req
     
-        const data = await Dealer.findAll({
+        const payload = {
             limit: parseInt(limit) || 10,
             offset: parseInt(offset) || 0,
+        }
+        if (provinceId) 
+            payload.where = {
+                provinceId
+            }
+        const data = await Dealer.findAll({
             ...rest,
+            ...payload,
             include: [
                 {
                     model: Facility,
