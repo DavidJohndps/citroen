@@ -69,7 +69,8 @@ router.get('/', async (req, res) => {
                     attributes: ['type', 'price']
                   },
                 },
-              ]
+              ],
+            order: [['highlight', 'DESC']],
         });
     
         res.send({
