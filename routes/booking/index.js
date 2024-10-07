@@ -31,8 +31,8 @@ router.post('/', async (req, res) => {
         });
 
         let dealer, province, city, attachment, subject;
-        // const bcc = 'noreply@citroen.indomobil.co.id, care@citroen.indomobil.co.id, ferdinan.hendra@citroen.indomobil.co.id, galih.pamungkas@citroen.indomobil.co.id, heri.kurniawan@citroen.indomobil.co.id, ulung.windi@citroen.indomobil.co.id';
-        const bcc = 'daffa.firdaus13@gmail.com';
+        const bcc = 'noreply@citroen.indomobil.co.id, care@citroen.indomobil.co.id, ferdinan.hendra@citroen.indomobil.co.id, galih.pamungkas@citroen.indomobil.co.id, heri.kurniawan@citroen.indomobil.co.id, ulung.windi@citroen.indomobil.co.id';
+        // const bcc = 'daffa.firdaus13@gmail.com';
 
         if (type === 'Get Quotation') {
             dealer = await Dealer.findOne({
