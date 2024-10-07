@@ -14,6 +14,7 @@ app.use(cors());
 app.use(bodyParser.json());
 
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'assets/images')));
 app.use('/api', routes)
 
 sequelize.authenticate()

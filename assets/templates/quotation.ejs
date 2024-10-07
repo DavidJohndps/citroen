@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Quotation Citroen</title>
+</head>
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f9f9f9;">
+
+<div style="background-color: #fff; padding: 20px; border-radius: 8px; width: 750px; margin: auto; border: 1px solid #ddd;">
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+        <tr>
+            <td style="width: 100px; text-align: center;">
+                <img src="https://api.citroen-info.id/img/indomobil_logo" alt="Indomobil Logo" style="width: 100px;">
+            </td>
+            <td style="text-align: center;">
+                <h1 style="font-size: 20px; margin: 0;">PT Indomobil National Distributor</h1>
+                <p style="margin: 5px 0;">Indomobil Tower, 14th Floor Jl MT Haryono Kav. 11 13330,<br>
+                Jakarta Timur, Indonesia<br>
+                Telp. +62 218579322</p>
+            </td>
+            <td style="width: 100px; text-align: center;">
+                <img src="https://api.citroen-info.id/img/citroen_logo" alt="Citroen Logo" style="width: 100px;">
+            </td>
+        </tr>
+    </table>
+
+    <p><strong>Status:</strong> <%= status %> | <strong>E-Quotation ini berlaku sampai:</strong> <%= quotationDate %></p>
+
+    <h2>Data Pemesan</h2>
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px;">
+        <tr>
+            <th style="padding: 8px; border: 1px solid #ddd; background-color: #f2f2f2; text-align: left;">Nama Sesuai KTP</th>
+            <td style="padding: 8px; border: 1px solid #ddd;"><%= requester.name %></td>
+        </tr>
+        <tr>
+            <th style="padding: 8px; border: 1px solid #ddd; background-color: #f2f2f2; text-align: left;">No Handphone</th>
+            <td style="padding: 8px; border: 1px solid #ddd;"><%= requester.phone %></td>
+        </tr>
+        <tr>
+            <th style="padding: 8px; border: 1px solid #ddd; background-color: #f2f2f2; text-align: left;">Email</th>
+            <td style="padding: 8px; border: 1px solid #ddd;"><%= requester.email %></td>
+        </tr>
+        <tr>
+            <th style="padding: 8px; border: 1px solid #ddd; background-color: #f2f2f2; text-align: left;">Alamat</th>
+            <td style="padding: 8px; border: 1px solid #ddd;"><%= requester.address %></td>
+        </tr>
+        <tr>
+            <th style="padding: 8px; border: 1px solid #ddd; background-color: #f2f2f2; text-align: left;">Provinsi</th>
+            <td style="padding: 8px; border: 1px solid #ddd;"><%= requester.province %></td>
+        </tr>
+        <tr>
+            <th style="padding: 8px; border: 1px solid #ddd; background-color: #f2f2f2; text-align: left;">Kota</th>
+            <td style="padding: 8px; border: 1px solid #ddd;"><%= requester.city %></td>
+        </tr>
+        <tr>
+            <th style="padding: 8px; border: 1px solid #ddd; background-color: #f2f2f2; text-align: left;">Jumlah Pesanan</th>
+            <td style="padding: 8px; border: 1px solid #ddd;"><%= orderQuantity %></td>
+        </tr>
+    </table>
+
+    <h2>Data Kendaraan</h2>
+    <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">
+                <img src="<%= vehicle.image %>" alt="Vehicle Image" style="width: 100%; max-width: 250px;">
+            </td>
+            <td>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <th style="padding: 8px; border: 1px solid #ddd; background-color: #f2f2f2; text-align: left;">Nama Kendaraan</th>
+                        <td style="padding: 8px; border: 1px solid #ddd;"><%= vehicle.name %></td>
+                    </tr>
+                    <tr>
+                        <th style="padding: 8px; border: 1px solid #ddd; background-color: #f2f2f2; text-align: left;">Warna Kendaraan</th>
+                        <td style="padding: 8px; border: 1px solid #ddd;"><%= vehicle.color %></td>
+                    </tr>
+                    <tr>
+                        <th style="padding: 8px; border: 1px solid #ddd; background-color: #f2f2f2; text-align: left;">Harga OTR</th>
+                        <td style="padding: 8px; border: 1px solid #ddd;">Rp<%= vehicle.price.toLocaleString() %></td>
+                    </tr>
+                    <tr>
+                        <th style="padding: 8px; border: 1px solid #ddd; background-color: #f2f2f2; text-align: left;"><%= vehicle.option %></th>
+                        <td style="padding: 8px; border: 1px solid #ddd;"><%= vehicle.optionDesc %> - Rp<%= vehicle.optionPrice.toLocaleString() %></td>
+                    </tr>
+                    <tr>
+                        <th style="padding: 8px; border: 1px solid #ddd; background-color: #f2f2f2; text-align: left;">Total</th>
+                        <td style="padding: 8px; border: 1px solid #ddd;">Rp<%= vehicle.total.toLocaleString() %></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <h3>Syarat & Ketentuan</h3>
+    <ol style="padding-left: 20px;">
+        <li>Harga yang tercantum adalah harga ON THE ROAD (OTR), harga tercantum bersifat tidak mengikat dan dapat berubah sewaktu-waktu dengan didahului pemberitahuan sebelumnya.</li>
+        <li>Surat pesanan ini BUKAN merupakan BUKTI PEMBAYARAN.</li>
+        <li>Surat Pemesanan Mobil dianggap SAH apabila:
+            <ol>
+                <li>Pemesan sudah melakukan konfirmasi secara elektronik melalui tautan yang dikirim ke email tercantum.</li>
+                <li>Surat pesanan Mobil sudah disetujui oleh Kepala Cabang secara elektronik melalui sistem persetujuan perusahaan.</li>
+                <li>Pembayaran tanda jadi sudah dilakukan oleh pemesan.</li>
+            </ol>
+        </li>
+        <li>Harga ON THE ROAD (OTR) tercantum adalah harga termasuk BBN untuk kepemilikan mobil pertama atas nama STNK tercantum. Pemesan wajib membayar biaya tambahan apabila terdapat biaya BBN Progresif atas nama STNK tercantum.</li>
+        <li>Nama pada FAKTUR STNK yang tercantum dalam surat pemesan mobil (E-Quotation) ini TIDAK DAPAT DIUBAH.</li>
+        <li>Apabila terjadi PEMBATALAN PEMESANAN, Uang Muka Jaminan Pembelian Kendaraan tidak dapat dikembalikan.</li>
+        <li>Pemesan dianggap MENYETUJUI semua syarat & ketentuan apabila sudah melakukan konfirmasi pemesanan secara elektronik.</li>
+        <li>MASA BERLAKU dari E-Quotation ini adalah sampai <%= quotationDate %>.</li>
+    </ol>
+</div>
+
+</body>
+</html>

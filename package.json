@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon index.js",
-"deploy": "docker compose down && docker compose build && docker compose up -d"
+    "deploy": "docker compose down && docker compose build && docker compose up -d"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +17,7 @@
     "dotenv": "^16.4.5",
     "ejs": "^3.1.10",
     "express": "^4.19.2",
+    "html-pdf": "^3.0.1",
     "i": "^0.3.7",
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
