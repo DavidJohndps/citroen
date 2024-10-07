@@ -87,7 +87,7 @@ router.post('/', async (req, res) => {
                 // Generate PDF with Puppeteer in Buffer mode (no ReadableStream)
                 const browser = await puppeteer.launch({
                     headless: true,
-                    executablePath: '/usr/bin/google-chrome',
+                    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
                     args: ['--no-sandbox'],
                 });
                 const page = await browser.newPage();
