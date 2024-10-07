@@ -131,13 +131,13 @@ router.post('/', async (req, res) => {
                 break;
         }
     
-        res.send({
+        return res.send({
             success: true,
             data
         }).status(200);
     } catch (error) {
         console.log(error)
-        res.send({
+        return res.send({
             success: false,
             message: error.message
         }).status(error.code)
