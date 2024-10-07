@@ -87,24 +87,27 @@ router.get('/admin', async (req, res) => {
             limit: parseInt(limit) || 10,
             offset: parseInt(offset) || 0,
         }
-        if (id) payload.where = {id}
+        const include = [
+            {
+                model: Car,
+                attributes: {
+                    exclude: ['createdAt', 'updatedAt']
+                }
+            },
+            {
+                model: Service,
+                attributes: {
+                    exclude: ['createdAt', 'updatedAt']
+                }
+            }
+        ]
+        if (id) include[0].where = {
+            id: id
+        }
         const data = await CarService.findAll({
             ...payload,
             ...rest,
-            include: [
-                {
-                    model: Car,
-                    attributes: {
-                        exclude: ['createdAt', 'updatedAt']
-                    }
-                },
-                {
-                    model: Service,
-                    attributes: {
-                        exclude: ['createdAt', 'updatedAt']
-                    }
-                }
-            ]
+            include
         });
     
         res.send({
