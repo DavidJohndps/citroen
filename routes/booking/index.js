@@ -111,7 +111,7 @@ router.post('/', async (req, res) => {
                 };
                 htmlPdf.create(html, options).toBuffer(async (err, pdfBuffer) => {
                     if (err) {
-                        console.log(err)
+                        console.log(err.toString())
                         return res.status(500).send('Error generating PDF: ' + err.toString());
                     }
 
