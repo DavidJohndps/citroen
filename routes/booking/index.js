@@ -86,8 +86,9 @@ router.post('/', async (req, res) => {
 
                 // Generate PDF with Puppeteer in Buffer mode (no ReadableStream)
                 const browser = await puppeteer.launch({
-                    args: ['--no-sandbox', '--disable-setuid-sandbox'], // Required in some Docker environments,
                     headless: true,
+                    executablePath: '/usr/bin/google-chrome',
+                    args: ['--no-sandbox'],
                 });
                 const page = await browser.newPage();
                 await page.setContent(html, { waitUntil: 'networkidle0' });
