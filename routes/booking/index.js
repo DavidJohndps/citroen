@@ -78,17 +78,18 @@ router.post('/', async (req, res) => {
                         total: carGalleryPrice.price + accessoryPrice.price,
                         image: `https://api.citroen-info.id/${carGallery.path.split('public/')[1]}`
                     }
-                };
+                }; 
                 text = `Hallo, ${name}. \n\n We're excited to have you get started with Citroën! \n Pada email ini kami lampirkan e-Quotation untuk mobil Citroën Anda. Silahkan tunjukkan kode QR atau Nomor Seri di bawah ini kepada salah satu staf Citroën di sekitar Anda atau Anda dapat mendatangi Dealer resmi Citroën untuk melanjutkan proses pemesanan Anda! \n\n Jika Anda memiliki pertanyaan, biarkan kami membantu Anda! \n Hubungi kami melalui WhatsApp(${dealer.pic})`;
 
                 // Render EJS to HTML
                 const html = await ejs.renderFile(path.resolve(__dirname, '../../', 'assets/templates/quotation.ejs'), pdfPayload);
 
+                console.log(process.env.PUPPETEER_EXECUTABLE_PATH)
                 // Generate PDF with Puppeteer in Buffer mode (no ReadableStream)
                 const browser = await puppeteer.launch({
                     headless: true,
                     executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium-browser',
-                    args: ['--no-sandbox'],
+                    args: ['--no-sandbox', '--disable-setuid-sandbox'],
                     protocolTimeout: 60000,
                     timeout: 60000  // Adjust the timeout as needed
                 });
