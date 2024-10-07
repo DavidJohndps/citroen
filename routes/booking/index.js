@@ -6,7 +6,7 @@ const { Car, CarGallery, Gallery, Dealer, Province, City } = require('../../mode
 const { Op } = require('sequelize');
 const path = require('path');
 const ejs = require('ejs');
-const htmlPdf = require('html-pdf');
+const puppeteer = require('puppeteer');  // Use standard puppeteer package
 const moment = require('moment');
 
 moment.locale('id');
@@ -31,8 +31,8 @@ router.post('/', async (req, res) => {
         });
 
         let dealer, province, city, attachment, subject;
-        const bcc = 'noreply@citroen.indomobil.co.id, care@citroen.indomobil.co.id, ferdinan.hendra@citroen.indomobil.co.id, galih.pamungkas@citroen.indomobil.co.id, heri.kurniawan@citroen.indomobil.co.id, ulung.windi@citroen.indomobil.co.id';
-        // const bcc = 'daffa.firdaus13@gmail.com, fauzanamrian12@gmail.com'
+        // const bcc = 'noreply@citroen.indomobil.co.id, care@citroen.indomobil.co.id, ferdinan.hendra@citroen.indomobil.co.id, galih.pamungkas@citroen.indomobil.co.id, heri.kurniawan@citroen.indomobil.co.id, ulung.windi@citroen.indomobil.co.id';
+        const bcc = 'daffa.firdaus13@gmail.com';
 
         if (type === 'Get Quotation') {
             dealer = await Dealer.findOne({
@@ -81,19 +81,19 @@ router.post('/', async (req, res) => {
                 };
                 text = `Hallo, ${name}. \n\n We're excited to have you get started with Citroën! \n Pada email ini kami lampirkan e-Quotation untuk mobil Citroën Anda. Silahkan tunjukkan kode QR atau Nomor Seri di bawah ini kepada salah satu staf Citroën di sekitar Anda atau Anda dapat mendatangi Dealer resmi Citroën untuk melanjutkan proses pemesanan Anda! \n\n Jika Anda memiliki pertanyaan, biarkan kami membantu Anda! \n Hubungi kami melalui WhatsApp(${dealer.pic})`;
 
+                // Render EJS to HTML
                 const html = await ejs.renderFile(path.resolve(__dirname, '../../', 'assets/templates/quotation.ejs'), pdfPayload);
-                const options = {
-                    format: 'A3',
-                    orientation: 'portrait',
-                    border: { top: '20px', right: '20px', bottom: '20px', left: '20px' },
-                };
 
-                const pdfBuffer = await new Promise((resolve, reject) => {
-                    htmlPdf.create(html, options).toBuffer((err, buffer) => {
-                        if (err) reject(err);
-                        resolve(buffer);
-                    });
+                // Generate PDF with Puppeteer in Buffer mode (no ReadableStream)
+                const browser = await puppeteer.launch();
+                const page = await browser.newPage();
+                await page.setContent(html, { waitUntil: 'networkidle0' });
+                const pdfBuffer = await page.pdf({
+                    format: 'A3',
+                    printBackground: true,
+                    margin: { top: '20px', right: '20px', bottom: '20px', left: '20px' }
                 });
+                await browser.close();
 
                 attachment = {
                     filename: `E-Quotation - ${car.name.replace('|', '')} | ${moment().format('D-M-YYYY')}.pdf`,
