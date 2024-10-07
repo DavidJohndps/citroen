@@ -111,6 +111,7 @@ router.post('/', async (req, res) => {
                 };
                 htmlPdf.create(html, options).toBuffer(async (err, pdfBuffer) => {
                     if (err) {
+                        console.log(err)
                         return res.status(500).send('Error generating PDF: ' + err.toString());
                     }
 
@@ -137,10 +138,10 @@ router.post('/', async (req, res) => {
         }).status(200);
     } catch (error) {
         console.log(error)
-        return res.send({
-            success: false,
-            message: error.message
-        }).status(error.code)
+        // return res.send({
+        //     success: false,
+        //     message: error.message
+        // })
     }
 });
 
