@@ -87,8 +87,10 @@ router.post('/', async (req, res) => {
                 // Generate PDF with Puppeteer in Buffer mode (no ReadableStream)
                 const browser = await puppeteer.launch({
                     headless: true,
-                    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+                    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium-browser',
                     args: ['--no-sandbox'],
+                    protocolTimeout: 60000,
+                    timeout: 60000  // Adjust the timeout as needed
                 });
                 const page = await browser.newPage();
                 await page.setContent(html, { waitUntil: 'networkidle0' });
