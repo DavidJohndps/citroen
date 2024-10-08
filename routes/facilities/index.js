@@ -8,10 +8,16 @@ router.get('/', async (req, res) => {
     try {
         
         const {query: {limit, offset, ...rest}} = req
+
+        const payload = {
+            offset: parseInt(offset) || 0,
+        }
+        if(parseInt(limit) && !isNaN(limit)) {
+            payload.limit = parseInt(limit) || 10
+        }
     
         const data = await Facility.findAll({
-            limit: parseInt(limit) || 10,
-            offset: parseInt(offset) || 0,
+            ...payload,
             ...rest,
         });
     
