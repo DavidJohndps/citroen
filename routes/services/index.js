@@ -9,9 +9,14 @@ router.get('/', async (req, res) => {
         
         const {query: {limit, offset, ...rest}} = req
     
-        const data = await Service.findAll({
-            limit: parseInt(limit) || 10,
+        const payload = {
             offset: parseInt(offset) || 0,
+        }
+        if(parseInt(limit) && !isNaN(limit)) {
+            payload.limit = parseInt(limit) || 10
+        }
+        const data = await Service.findAll({
+            ...payload,
             ...rest,
         });
     

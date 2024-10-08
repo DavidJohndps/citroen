@@ -52,8 +52,10 @@ router.get('/', async (req, res) => {
         const {query: {limit, offset, id, ...rest}} = req
 
         const payload = {
-            limit: parseInt(limit) || 10,
             offset: parseInt(offset) || 0,
+        }
+        if(parseInt(limit) && !isNaN(limit)) {
+            payload.limit = parseInt(limit) || 10
         }
         if (id) payload.where = {id}
         const data = await Car.findAll({
