@@ -84,8 +84,10 @@ router.get('/admin', async (req, res) => {
     
 
         const payload = {
-            limit: parseInt(limit) || 10,
             offset: parseInt(offset) || 0,
+        }
+        if(parseInt(limit) && !isNaN(limit)) {
+            payload.limit = parseInt(limit) || 10
         }
         const include = [
             {
