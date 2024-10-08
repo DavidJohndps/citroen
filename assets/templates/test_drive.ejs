@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Halo, <%= name %></title>
+</head>
+<body style="font-family: Arial, sans-serif; color: #333; line-height: 1.6; margin: 0; padding: 0;">
+  <div style="width: 90%; max-width: 600px; margin: auto; padding: 20px;">
+    <div style="font-size: 24px; font-weight: bold; margin-bottom: 10px;">Halo, <%= name %>!</div>
+
+    <p style="margin-top: 20px; font-size: 16px;">
+      We're excited to have you get started with Citroën!<br>
+      Anda telah mengirimkan permintaan untuk test drive mobil Citroën. Kami akan segera menghubungi Anda.
+    </p>
+
+    <p style="margin-top: 20px; font-size: 16px;">
+      Berikut informasi data anda yang telah kami terima:
+    </p>
+
+    <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 16px;">
+      <tr>
+        <td style="padding: 8px 0; font-weight: bold;">Nama</td>
+        <td style="padding: 8px 0;">:</td>
+        <td style="padding: 8px 0;"><%= name %></td>
+      </tr>
+      <tr>
+        <td style="padding: 8px 0; font-weight: bold;">Email</td>
+        <td style="padding: 8px 0;">:</td>
+        <td style="padding: 8px 0;"><%= email %></td>
+      </tr>
+      <tr>
+        <td style="padding: 8px 0; font-weight: bold;">Telepon</td>
+        <td style="padding: 8px 0;">:</td>
+        <td style="padding: 8px 0;"><%= phone %></td>
+      </tr>
+      <tr>
+        <td style="padding: 8px 0; font-weight: bold;">Permintaan</td>
+        <td style="padding: 8px 0;">:</td>
+        <td style="padding: 8px 0;">Test Drive</td>
+      </tr>
+      <tr>
+        <td style="padding: 8px 0; font-weight: bold;">Dealer dipilih</td>
+        <td style="padding: 8px 0;">:</td>
+        <td style="padding: 8px 0;"><%= dealer %></td>
+      </tr>
+      <tr>
+        <td style="padding: 8px 0; font-weight: bold;">Model</td>
+        <td style="padding: 8px 0;">:</td>
+        <td style="padding: 8px 0;"><%= model %></td>
+      </tr>
+    </table>
+
+    <div style="margin-top: 30px; font-size: 18px; color: #555;">
+      Bien à vous,<br>
+      <span><strong>Citroën!</strong></span>
+    </div>
+  </div>
+</body>
+</html>

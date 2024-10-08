@@ -21,7 +21,7 @@ const sendEmail = async ({to, bcc, subject, text, templateName, templateData, at
 
     try {
       // Try to render the EJS template with the data
-      const templatePath = path.join(__dirname, 'templates', `${templateName}.ejs`);
+      const templatePath = path.join(__dirname, '../assets/templates', `${templateName}.ejs`);
       renderHtml = await ejs.renderFile(templatePath, templateData || {});
 
       // If renderHtml is empty or undefined, use default HTML
