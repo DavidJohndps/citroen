@@ -39,6 +39,7 @@ const sendEmail = async ({to, bcc, subject, text, templateName, templateData, at
       to: to, // Recipient's email address
       bcc,
       subject: subject, // Subject line
+      replyTo: 'fauzanamrian12@gmail.com', // The email where replies should be sent
     };
 
     if(renderHtml) mailOptions.html = renderHtml // HTML body from the template
