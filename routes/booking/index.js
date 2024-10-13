@@ -14,7 +14,7 @@ moment.locale('id');
 router.post('/', async (req, res) => {
     try {
         const { body: data } = req;
-        const { type, carData: carId, selectedColor: color, selectedAccessory: accessory, KTPName: name, PhoneNumber: phoneNumber, email, provincies: provinceId, city: cityId, fullAddress: address } = data;
+        const { type, carData: carId, selectedColor: color, selectedAccessory: accessory, KTPName: name, PhoneNumber: phoneNumber, email, provincies: provinceId, city: cityId, fullAddress: address, dealer: selectedDealer } = data;
 
         const car = await Car.findOne({
             where: { id: carId },
@@ -31,8 +31,8 @@ router.post('/', async (req, res) => {
         });
 
         let dealer, province, city, attachment, subject;
-        const bcc = 'noreply@citroen.indomobil.co.id, care@citroen.indomobil.co.id, ferdinan.hendra@citroen.indomobil.co.id, galih.pamungkas@citroen.indomobil.co.id, heri.kurniawan@citroen.indomobil.co.id, ulung.windi@citroen.indomobil.co.id';
-        // const bcc = 'daffa.firdaus13@gmail.com';
+        // const bcc = 'noreply@citroen.indomobil.co.id, care@citroen.indomobil.co.id, ferdinan.hendra@citroen.indomobil.co.id, galih.pamungkas@citroen.indomobil.co.id, heri.kurniawan@citroen.indomobil.co.id, ulung.windi@citroen.indomobil.co.id';
+        const bcc = 'daffa.firdaus13@gmail.com';
 
         if (type === 'Get Quotation') {
             dealer = await Dealer.findOne({
@@ -107,14 +107,16 @@ router.post('/', async (req, res) => {
                     content: pdfBuffer
                 };
 
-                await sendMail({ to: email, bcc, subject, text, attachment });
+                await sendMail({ to: email, bcc, subject, text, templateName: 'quotation_email', templateData: {name, number: phoneNumber},attachment });
                 break;
 
             case 'Test Drive':
                 subject = 'Citroen Booking';
                 text = `Hallo, ${name}. \n\n We're excited to have you get started with Citroën! \n Anda telah mengirimkan permintaan untuk test drive mobil Citroën. Kami akan segera menghubungi Anda. \n\n Berikut informasi data anda yang telah kami terima: \n Nama \t: ${name}\n Email \t: ${email}\n Alamat Domisili \t: ${address}\n Telepon \t: ${phoneNumber}\n Model \t: ${car.name.replace('|', '')}\n Permintaan \t: ${type}`;
-                await sendMail({ to: email, bcc, subject, text });
+                await sendMail({ to: email, bcc, subject, templateName: 'test_drive', templateData: {name, email, phone: phoneNumber, dealer: selectedDealer.name, model: car.name.replace('|', '')}, text });
                 break;
+            case 'Test Drive 6 days':
+                break
         }
 
         return res.status(200).send({ success: true, data });
