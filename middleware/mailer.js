@@ -7,13 +7,25 @@ const sendEmail = async ({to, bcc, subject, text, templateName, templateData, at
   try {
     // Create a transporter using Gmail
     const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
+      // host: 'smtp.gmail.com',
+      host: process.env.GMAIL_HOST,
+      port: 587,
+      secure: false,
       auth: {
         user: process.env.GMAIL_EMAIL, // Your Gmail address
         pass: process.env.GMAIL_OAUTH, // Your Gmail password (or OAuth2 token if you prefer)
       },
+      tls: {
+        rejectUnauthorized: true
+      }
+    });
+
+    transporter.verify(function (error, success) {
+      if (error) {
+        console.log(error);
+      } else {
+        console.log("Server is ready to take our messages");
+      }
     });
 
     const defaultHTML = '<p>This is a default HTML message.</p>'
