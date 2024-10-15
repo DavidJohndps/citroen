@@ -105,13 +105,13 @@ router.post('/', async (req, res) => {
                     content: pdfBuffer
                 };
 
-                await sendMail({ to: email, bcc, subject, text, templateName: 'quotation_email', templateData: {name, number: phoneNumber},attachment });
+                await sendMail({ to: email, bcc, subject, text, templateName: 'quotation_email', templateData: {name, number: '+6287844754575'},attachment });
                 break;
 
             case 'Test Drive':
                 subject = 'Citroen Booking';
                 text = `Hallo, ${name}. \n\n We're excited to have you get started with Citroën! \n Anda telah mengirimkan permintaan untuk test drive mobil Citroën. Kami akan segera menghubungi Anda. \n\n Berikut informasi data anda yang telah kami terima: \n Nama \t: ${name}\n Email \t: ${email}\n Alamat Domisili \t: ${address}\n Telepon \t: ${phoneNumber}\n Model \t: ${car.name.replace('|', '')}\n Permintaan \t: ${type}`;
-                await sendMail({ to: email, bcc, subject, templateName: 'test_drive', templateData: {name, email, phone: phoneNumber, dealer: selectedDealer.name, model: car.name.replace('|', '')}, text });
+                await sendMail({ to: email, bcc, subject, templateName: 'test_drive', templateData: {name, email, phone: phoneNumber, dealer: selectedDealer.name, model: car.name.replace('|', ''), cs: '+6287844754575'}, text });
                 break;
             case 'Test Drive 6 days':
                 break
