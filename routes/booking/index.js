@@ -11,7 +11,7 @@ const moment = require('moment');
 
 moment.locale('id');
 
-router.post('/', uploadGallery.fields([{name: 'ktp', maxCount: 1}, {name: 'sim', maxCount: 1}]), async (req, res) => {
+router.post('/', async (req, res) => {
     try {
         const { body: data } = req;
         const { type, carData: carId, selectedColor: color, selectedAccessory: accessory, KTPName: name, PhoneNumber: phoneNumber, email, provincies: provinceId, city: cityId, fullAddress: address, dealer: selectedDealer } = data;
