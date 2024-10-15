@@ -49,7 +49,7 @@ const isValid = (string) => {
 router.get('/', async (req, res) => {
     try {
         
-        const {query: {limit, offset, id, name, ...rest}} = req
+        const {query: {limit, offset, id, name, slug, ...rest}} = req
 
         const payload = {
             offset: parseInt(offset) || 0,
@@ -58,6 +58,7 @@ router.get('/', async (req, res) => {
             payload.limit = parseInt(limit) || 10
         }
         if (id) payload.where = {id}
+        if (slug) payload.where = {slug}
         if (name) payload.where = {
             name: {
                 [Op.like]: `%${name}%`

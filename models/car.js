@@ -42,6 +42,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false
     },
+    slug: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
     brochure: {
       type: DataTypes.STRING,
       allowNull: false
@@ -59,6 +63,11 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true
     },
     highlight: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      allowNull: true
+    },
+    loanForm: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
       allowNull: true
