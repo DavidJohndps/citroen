@@ -5,6 +5,7 @@ const path = require('path');
 // Reusable email sending function with template support
 const sendEmail = async ({to, bcc, subject, text, templateName, templateData, attachment}) => {
   try {
+    console.log({templateData})
     // Create a transporter using Gmail
     const transporter = nodemailer.createTransport({
       // host: 'smtp.gmail.com',
@@ -36,6 +37,7 @@ const sendEmail = async ({to, bcc, subject, text, templateName, templateData, at
       const templatePath = path.join(__dirname, '../assets/templates', `${templateName}.ejs`);
       renderHtml = await ejs.renderFile(templatePath, templateData || {});
 
+      console.log({renderHtml})
       // If renderHtml is empty or undefined, use default HTML
       if (!renderHtml) {
         console.log('Rendered HTML is empty. Using default HTML.');

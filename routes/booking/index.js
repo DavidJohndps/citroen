@@ -16,8 +16,8 @@ moment.locale('id');
 
 router.post('/', uploadGallery.fields([{name: 'ktp', maxCount: 1}, {name: 'sim', maxCount: 1}]), async (req, res) => {
     try {
-        const { body: data, files: {ktp: ktpFile, sim: simFile} } = req;
-        const { type, carData: carId, selectedColor: color, selectedAccessory: accessory, KTPName: name, noKtp, PhoneNumber: phoneNumber, email, provincies: provinceId, city: cityId, fullAddress: address, dealer: selectedDealer } = data;
+        const { body: data } = req;
+        const { type, carData: carId, selectedColor: color, selectedAccessory: accessory, KTPName: name, noKtp, PhoneNumber: phoneNumber, email, provincies: provinceId, city: cityId, fullAddress: address, area: closestDealer, dealer: selectedDealer } = data;
 
         const spreadsheetId = process.env.SHEET_ID
 
@@ -35,7 +35,7 @@ router.post('/', uploadGallery.fields([{name: 'ktp', maxCount: 1}, {name: 'sim',
             ]
         });
 
-        let dealer, province, city, attachment, subject;
+        let dealer, province, city, attachment, subject, ktpFile, simFile;
         const bcc = 'noreply@citroen.indomobil.co.id, care@citroen.indomobil.co.id, ferdinan.hendra@citroen.indomobil.co.id, galih.pamungkas@citroen.indomobil.co.id, heri.kurniawan@citroen.indomobil.co.id, ulung.windi@citroen.indomobil.co.id';
 
         if (type === 'Get Quotation') {
@@ -50,7 +50,13 @@ router.post('/', uploadGallery.fields([{name: 'ktp', maxCount: 1}, {name: 'sim',
             province = await Province.findOne({ where: { id: provinceId } });
             city = await City.findOne({ where: { id: cityId, provinceId } });
         }
+        if(type === 'Test Drive') {
+            province = await Province.findOne({ where: { id: provinceId } });
+            city = await City.findOne({ where: { id: cityId, provinceId } });
+        }
         if (type === 'Test Drive 6 days') {
+            ktpFile = req.files.ktp
+            simFile = req.files.sim
             if(!Array.isArray(ktpFile) && !ktpFile[0]) {
                 return res.send({
                     success: false,
@@ -130,16 +136,20 @@ router.post('/', uploadGallery.fields([{name: 'ktp', maxCount: 1}, {name: 'sim',
             case 'Test Drive':
                 subject = 'Citroen Booking';
                 text = `Hallo, ${name}. \n\n We're excited to have you get started with Citroën! \n Anda telah mengirimkan permintaan untuk test drive mobil Citroën. Kami akan segera menghubungi Anda. \n\n Berikut informasi data anda yang telah kami terima: \n Nama \t: ${name}\n Email \t: ${email}\n Alamat Domisili \t: ${address}\n Telepon \t: ${phoneNumber}\n Model \t: ${car.name.replace('|', '')}\n Permintaan \t: ${type}`;
-                await sendMail({ to: email, bcc, subject, templateName: 'test_drive', templateData: {name, email, phone: phoneNumber, dealer: selectedDealer.name, model: car.name.replace('|', ''), cs: '+6287844754575'}, text });
+                await sendMail({ to: email, bcc, subject, templateName: 'test_drive', templateData: {name, email, province: province.name, city: city.name, phone: phoneNumber, dealer: selectedDealer.name, model: car.name.replace('|', ''), cs: '+6287844754575'}, text });
                 break;
             case 'Test Drive 6 days':
                 const ktpFileUrl = await uploadToDrive(ktpFile[0].path, ktpFile[0].originalname, 'ktp');
                 const simFileUrl = await uploadToDrive(simFile[0].path, simFile[0].originalname, 'sim');
+                const parsedClosestDealer = JSON.parse(closestDealer)
                 const spreadsheetData = [
                     moment().utcOffset(7).format('M/D/YYYY HH:mm:ss'),   // Timestamp
                     name,                                   // Nama
                     phoneNumber.replace(/^0/, '+62'),       // Phone/Whatsapp
                     email,                                  // Email
+                    address,                                // Alamat Domisili
+                    parsedClosestDealer.name,               // Area Domisili
+                    parsedClosestDealer.dealer,             //Dealer Terdekat 
                     car.name.replace('|', ''),              // Nama Mobil
                     noKtp,                                  // Nomor KTP
                     `=IMAGE("${ktpFileUrl}", 1)`,           // Foto KTP
@@ -147,7 +157,7 @@ router.post('/', uploadGallery.fields([{name: 'ktp', maxCount: 1}, {name: 'sim',
                     `=IMAGE("${simFileUrl}", 1)`,           // Foto Sim
                     simFileUrl,                             // Link Foto Sim
                   ];
-                const range = 'Sheet1!A:J'; // Adjust the range as needed
+                const range = 'Sheet1!A:M'; // Adjust the range as needed
 
                 const sheets = google.sheets({ version: 'v4', auth });
                 
