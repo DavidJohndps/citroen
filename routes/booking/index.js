@@ -76,7 +76,7 @@ router.post('/', uploadGallery.fields([{name: 'ktp', maxCount: 1}, {name: 'sim',
                 const accessoryPrice = selectedAccessory.prices.find(x => x.provinceId === provinceId);
                 const pdfPayload = {
                     status: 'Menunggu Konfirmasi',
-                    quotationDate: moment().add(3, 'M').format('dddd, Do MMMM YYYY'),
+                    quotationDate: moment().utcOffset(7).add(3, 'M').format('dddd, Do MMMM YYYY'),
                     requester: {
                         name,
                         phone: phoneNumber,
@@ -120,7 +120,7 @@ router.post('/', uploadGallery.fields([{name: 'ktp', maxCount: 1}, {name: 'sim',
                 await browser.close();
 
                 attachment = {
-                    filename: `E-Quotation - ${car.name.replace('|', '')} | ${moment().format('D-M-YYYY')}.pdf`,
+                    filename: `E-Quotation - ${car.name.replace('|', '')} | ${moment().utcOffset(7).format('D-M-YYYY')}.pdf`,
                     content: pdfBuffer
                 };
 
@@ -136,7 +136,7 @@ router.post('/', uploadGallery.fields([{name: 'ktp', maxCount: 1}, {name: 'sim',
                 const ktpFileUrl = await uploadToDrive(ktpFile[0].path, ktpFile[0].originalname, 'ktp');
                 const simFileUrl = await uploadToDrive(simFile[0].path, simFile[0].originalname, 'sim');
                 const spreadsheetData = [
-                    moment().format('M/D/YYYY HH:mm:ss'),   // Timestamp
+                    moment().utcOffset(7).format('M/D/YYYY HH:mm:ss'),   // Timestamp
                     name,                                   // Nama
                     phoneNumber.replace(/^0/, '+62'),       // Phone/Whatsapp
                     email,                                  // Email
