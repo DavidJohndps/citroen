@@ -36,7 +36,7 @@ router.post('/', uploadGallery.fields([{name: 'ktp', maxCount: 1}, {name: 'sim',
         });
 
         let dealer, province, city, attachment, subject, ktpFile, simFile;
-        const bcc = 'noreply@citroen.indomobil.co.id, care@citroen.indomobil.co.id, ferdinan.hendra@citroen.indomobil.co.id, galih.pamungkas@citroen.indomobil.co.id, heri.kurniawan@citroen.indomobil.co.id, ulung.windi@citroen.indomobil.co.id';
+        const bcc = 'citroen.sales.id@gmail.com,citroen.telemarketing@gmail.com,gabriel.felicia@citroen.indomobil.co.id,care@citroen.indomobil.co.id,ferdinan.hendra@citroen.indomobil.co.id,galih.pamungkas@citroen.indomobil.co.id,heri.kurniawan@citroen.indomobil.co.id,ulung.windi@citroen.indomobil.co.id';
 
         if (type === 'Get Quotation') {
             dealer = await Dealer.findOne({
