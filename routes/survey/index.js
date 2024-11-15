@@ -15,7 +15,7 @@ router.post('/', async (req, res) => {
 
         const spreadsheetId = type === 'event' ? process.env.SHEET_EVENT_ID : process.env.SHEET_BASALT_ID
         
-        let car, range
+        let car, city, range
 
         if (carId) {
             car = await Car.findOne({
@@ -33,11 +33,13 @@ router.post('/', async (req, res) => {
             });
         }
 
-        const city = await City.findOne({
-            where: {
-                id: cityId
-            }
-        })
+        if(cityId) {
+            city = await City.findOne({
+                where: {
+                    id: cityId
+                }
+            })
+        }
 
         const spreadsheetData = []
         const sheets = google.sheets({ version: 'v4', auth });
@@ -49,14 +51,14 @@ router.post('/', async (req, res) => {
                     name,                                   // Nama
                     phoneNumber.replace(/^0/, '+62'),       // Phone/Whatsapp
                     email,                                  // Email
-                    city.name,                                // Alamat Domisili
+                    city?.name,                                // Alamat Domisili
                     age,                                    // umur
                     marriageStatus,                         // status
                     profession,                             // profesi
                     knowFrom,                               // info pameran dari mana
                     planBuy,                                // rencana beli mobil
                     planWhen,                               // rencana kapan beli mobil
-                    carId ? car.name.replace('|', '') : 'Belum',              // mobil yang di test drive
+                    carId ? car?.name?.replace('|', '') : 'Belum',              // mobil yang di test drive
                     testDriveScore,                         // score test drive
                     interestingFeature,                     // fitur menarik
                     notInterestFeature,                     // fitur tidak menarik
@@ -78,7 +80,7 @@ router.post('/', async (req, res) => {
                     name,                                   // Nama
                     phoneNumber.replace(/^0/, '+62'),       // Phone/Whatsapp
                     email,                                  // Email
-                    city.name,                                // Alamat Domisili
+                    city?.name,                                // Alamat Domisili
                     age,                                    // umur
                     marriageStatus,                         // status
                     profession,                             // profesi
