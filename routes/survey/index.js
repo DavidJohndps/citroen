@@ -11,7 +11,7 @@ moment.locale('id');
 router.post('/', async (req, res) => {
     try {
         const { body: data } = req;
-        const { type, eventName, name, phoneNumber, email, cityId, age, marriageStatus, profession, knowFrom, planBuy, planWhen, testDriveCar: carId, testDriveScore, interestingFeature, notInterestFeature  } = data;
+        const { type, eventName, name, phoneNumber, email, cityId, age, marriageStatus, profession, knowFrom, planBuy, planWhen, testDriveCar: carId, testDriveScore, interestingFeature, notInterestFeature, basaltRange, hope, critic  } = data;
 
         const spreadsheetId = type === 'event' ? process.env.SHEET_EVENT_ID : process.env.SHEET_BASALT_ID
         
@@ -62,8 +62,9 @@ router.post('/', async (req, res) => {
                     testDriveScore,                         // score test drive
                     interestingFeature,                     // fitur menarik
                     notInterestFeature,                     // fitur tidak menarik
+                    critic                                    // saran atau masukan
                 );
-                range = 'Sheet1!A:P'; // Adjust the range as needed
+                range = 'Sheet1!A:Q'; // Adjust the range as needed
                 
                 await sheets.spreadsheets.values.append({
                     spreadsheetId,
@@ -89,8 +90,11 @@ router.post('/', async (req, res) => {
                     planWhen,                               // rencana kapan beli mobil
                     interestingFeature,                     // fitur menarik
                     notInterestFeature,                     // fitur tidak menarik
+                    basaltRange,                                 // saran atau masukan
+                    hope,                                    // fitur diharapkan ada
+                    critic,                                 // saran atau masukan
                 );
-                range = 'Sheet1!A:M'; // Adjust the range as needed
+                range = 'Sheet1!A:P'; // Adjust the range as needed
                 
                 await sheets.spreadsheets.values.append({
                     spreadsheetId,
