@@ -98,7 +98,7 @@ router.post('/', uploadGallery.fields([{name: 'ktp', maxCount: 1}, {name: 'sim',
                         price: carGalleryPrice.price,
                         option: selectedAccessory?.name,
                         optionDesc: selectedAccessory?.desc,
-                        optionPrice: accessoryPrice?.price,
+                        optionPrice: accessoryPrice?.price || 0,
                         total: carGalleryPrice.price + (accessoryPrice?.price || 0),
                         image: `https://api.citroen-info.id/${carGallery.path.split('public/')[1]}`
                     }
