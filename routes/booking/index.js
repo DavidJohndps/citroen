@@ -77,9 +77,9 @@ router.post('/', uploadGallery.fields([{name: 'ktp', maxCount: 1}, {name: 'sim',
                 subject = 'E - Quotation Citroen';
                 const carGallery = car.Galleries.find(x => x.id === color);
                 const carGalleryPrice = JSON.parse(carGallery.CarGallery.price).find(x => x.provinceId === provinceId);
-                const carAccessory = JSON.parse(car.accessory);
-                const selectedAccessory = carAccessory.find(x => x.name === accessory.name);
-                const accessoryPrice = selectedAccessory.prices.find(x => x.provinceId === provinceId);
+                const carAccessory = JSON.parse(car?.accessory);
+                const selectedAccessory = carAccessory?.find(x => x?.name === accessory?.name);
+                const accessoryPrice = selectedAccessory?.prices?.find(x => x?.provinceId === provinceId);
                 const pdfPayload = {
                     status: 'Menunggu Konfirmasi',
                     quotationDate: moment().utcOffset(7).add(3, 'M').format('dddd, Do MMMM YYYY'),
@@ -96,10 +96,10 @@ router.post('/', uploadGallery.fields([{name: 'ktp', maxCount: 1}, {name: 'sim',
                         name: car.name.replace('|', ''),
                         color: carGallery.name,
                         price: carGalleryPrice.price,
-                        option: selectedAccessory.name,
-                        optionDesc: selectedAccessory.desc,
-                        optionPrice: accessoryPrice.price,
-                        total: carGalleryPrice.price + accessoryPrice.price,
+                        option: selectedAccessory?.name,
+                        optionDesc: selectedAccessory?.desc,
+                        optionPrice: accessoryPrice?.price,
+                        total: carGalleryPrice.price + (accessoryPrice?.price || 0),
                         image: `https://api.citroen-info.id/${carGallery.path.split('public/')[1]}`
                     }
                 }; 
