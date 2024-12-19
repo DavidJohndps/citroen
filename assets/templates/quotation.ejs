@@ -77,7 +77,11 @@
                     </tr>
                     <tr>
                         <th style="padding: 8px; border: 1px solid #ddd; background-color: #f2f2f2; text-align: left;">Harga OTR</th>
-                        <td style="padding: 8px; border: 1px solid #ddd;">Start From Rp<%= vehicle.price.toLocaleString() %> (OTR <%= requester.province %>) </td>
+                        <% if (vehicle.id === '9f89bf54-0756-48af-b063-9f0a7d76d3f8') { %>
+                            <td style="padding: 8px; border: 1px solid #ddd;">Start From Rp<%= vehicle.price.toLocaleString() %> (OTR Jakarta) </td>
+                        <% } else { %>
+                            <td style="padding: 8px; border: 1px solid #ddd;">Start From Rp<%= vehicle.price.toLocaleString() %> (OTR <%= requester.province %>) </td>
+                        <% } %>
                     </tr>
                     <tr>
                         <th style="padding: 8px; border: 1px solid #ddd; background-color: #f2f2f2; text-align: left;"><%= vehicle.option %></th>

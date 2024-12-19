@@ -93,6 +93,7 @@ router.post('/', uploadGallery.fields([{name: 'ktp', maxCount: 1}, {name: 'sim',
                     },
                     orderQuantity: 1,
                     vehicle: {
+                        id: car.id,
                         name: car.name.replace('|', ''),
                         color: carGallery.name,
                         price: carGalleryPrice.price,
