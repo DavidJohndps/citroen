@@ -715,7 +715,7 @@ router.delete('/remove', authenticate, async (req, res) => {
             await Gallery.destroy({where: {id: x.id}})
         })
 
-        await CarService.destory({where: {carId: id}});
+        await CarService.destroy({where: {carId: id}});
 
         await Car.destroy({
             where:{
