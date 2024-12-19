@@ -81,13 +81,13 @@ router.get('/', async (req, res) => {
             order: [['highlight', 'DESC']],
         });
     
-        res.send({
+        return res.send({
             success: true,
             data
         }).status(200);
     } catch (error) {
         console.log({error})
-        res.send({
+        return res.send({
             success: false,
             message: error.message
         }).status(error.code)
@@ -258,7 +258,7 @@ router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 
             }
         }))
 
-        res.send({
+        return res.send({
             success: true,
             message: 'Mobil berhasil dibuat'
         })
@@ -541,13 +541,13 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
             }
         }))
 
-        res.send({
+        return res.send({
             success: true,
             message: 'Mobil berhasil dirubah'
         })
     } catch (error) {
         console.log({error})
-        res.send({
+        return res.send({
             success: false,
             message: error.message
         })
@@ -681,7 +681,6 @@ router.delete('/remove', authenticate, async (req, res) => {
                 success: false,
                 message: 'Mobil Tidak Ditemukan'
             })
-            return
         }
         
         const fullPath = path.join(path.resolve(__dirname, '../../'), carData.img); // Construct the full file path
@@ -724,13 +723,13 @@ router.delete('/remove', authenticate, async (req, res) => {
             }
         })
 
-        res.send({
+        return res.send({
             success: true,
             message: 'Mobil berhasil dihapus'
         })
     } catch (error) {
         console.log({error})
-        res.send({
+        return res.send({
             success: false,
             message: error.message
         })
