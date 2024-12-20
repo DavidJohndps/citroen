@@ -209,36 +209,36 @@ router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 
         if(head) payload.head = head
         if(service) payload.service = service
         if(sales) payload.sales = sales
-        const dealer = await Dealer.create(payload);
-        for (const facility of facilityData) {
-            await DealerFacility.create({facilityId: facility.id, dealerId: dealer.id})
-        }
+        // const dealer = await Dealer.create(payload);
+        // for (const facility of facilityData) {
+        //     await DealerFacility.create({facilityId: facility.id, dealerId: dealer.id})
+        // }
 
-        if (files && files.length !== 0) {
-            // return res.send({
-            //     success: false,
-            //     message: 'Foto warna mobil perlu ditambahkan'
-            // }).status(403);
+        // if (files && files.length !== 0) {
+        //     // return res.send({
+        //     //     success: false,
+        //     //     message: 'Foto warna mobil perlu ditambahkan'
+        //     // }).status(403);
 
-            files.map( async gallery => {
+        //     files.map( async gallery => {
 
-                const path = gallery.path
-                const galleryData = await Gallery.create({path});
-                await DealerGallery.create({dealerId: dealer.id, galleryId: galleryData.id})
-            })
+        //         const path = gallery.path
+        //         const galleryData = await Gallery.create({path});
+        //         await DealerGallery.create({dealerId: dealer.id, galleryId: galleryData.id})
+        //     })
 
-        }
+        // }
         // for (const car of cars) {
         //     await CarDealer.create({carId: car.id, dealerId: dealer.id, price: car.price})
         // }
 
-        res.send({
+        return res.send({
             success: true,
             message: 'Dealer berhasil dibuat'
         })
     } catch (error) {
         console.log(error)
-        res.send({
+        return res.send({
             success: false,
             message: error.message
         })
@@ -440,13 +440,13 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
         //     await CarDealer.create({carId: car.id, dealerId: id, price: car.price})
         // }
 
-        res.send({
+        return res.send({
             success: true,
             message: 'Dealer berhasil dirubah'
         })
     } catch (error) {
         console.log({error})
-        res.send({
+        return res.send({
             success: false,
             message: error.message
         })
@@ -612,13 +612,13 @@ router.delete('/remove', authenticate, async (req, res) => {
             }
         })
 
-        res.send({
+        return res.send({
             success: true,
             message: 'Dealer berhasil dihapus'
         })
     } catch (error) {
         console.log({error})
-        res.send({
+        return res.send({
             success: false,
             message: error.message
         })
