@@ -29,7 +29,7 @@ router.post('/', async (req, res) => {
       
       const token = generateToken(user);
   
-      res.status(200).send({ success: true, token });
+      return res.status(200).send({ success: true, token });
     } catch (err) {
         console.log({err})
         return res.status(500).send({

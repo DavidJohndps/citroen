@@ -25,13 +25,13 @@ router.get('/', async (req, res) => {
             exclude: ['password']
         }});
     
-        res.send({
+        return res.send({
             success: true,
             data
         }).status(200);
     } catch (error) {
         console.log({error})
-        res.send({
+        return res.send({
             success: false,
             message: error.message
         }).status(error.code)
@@ -62,13 +62,13 @@ router.post('/add', authenticate, upload.single('profile_picture'), async (req, 
         const hashedPassword = await bcrypt.hash(password, 10);
         await User.create({...data, password: hashedPassword, profile_picture: file.path});
 
-        res.send({
+        return res.send({
             success: true,
             message: 'Akun berhasil dibuat'
         })
     } catch (error) {
         console.log(error)
-        res.send({
+        return res.send({
             success: false,
             message: error.message
         })
@@ -82,7 +82,7 @@ router.patch('/change', authenticate, upload.single('profile_picture'), async (r
 
         // role 0: admin, role 1:head, role 2:staff
         if (role <= user.role) {
-            res.send({
+            return res.send({
                 success: false,
                 message: 'Anda tidak memiliki akses untuk merubah role akun tersebut'
             }).status(401);
@@ -90,7 +90,7 @@ router.patch('/change', authenticate, upload.single('profile_picture'), async (r
         }
 
         if(!file) {
-            res.send({
+            return res.send({
                 success: false,
                 message: 'Foto profil perlu ditambahkan'
             }).status(403);
@@ -123,13 +123,13 @@ router.patch('/change', authenticate, upload.single('profile_picture'), async (r
         await User.update(payload, {where: { id }})
 
 
-        res.send({
+        return res.send({
             success: true,
             message: 'Akun berhasil dirubah'
         })
     } catch (error) {
         console.log({error})
-        res.send({
+        return res.send({
             success: false,
             message: error.message
         })
@@ -148,7 +148,7 @@ router.delete('/remove', authenticate, async (req, res) => {
         })
 
         if (userData.role <= user.role) {
-            res.send({
+            return res.send({
                 success: false,
                 message: 'Anda tidak memiliki akses untuk merubah role akun tersebut'
             }).status(401);
@@ -174,13 +174,13 @@ router.delete('/remove', authenticate, async (req, res) => {
             }
         })
 
-        res.send({
+        return res.send({
             success: true,
             message: 'Akun berhasil dihapus'
         })
     } catch (error) {
         console.log({error})
-        res.send({
+        return res.send({
             success: false,
             message: error.message
         })
