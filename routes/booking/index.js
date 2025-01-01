@@ -8,13 +8,13 @@ const path = require('path');
 const fs = require('fs').promises;
 const ejs = require('ejs');
 const puppeteer = require('puppeteer');  // Use standard puppeteer package
-const {google} = require('googleapis');  // Use standard puppeteer package
+const { google } = require('googleapis');  // Use standard puppeteer package
 const auth = require('../../middleware/googleAuth')
 const moment = require('moment');
 
 moment.locale('id');
 
-router.post('/', uploadGallery.fields([{name: 'ktp', maxCount: 1}, {name: 'sim', maxCount: 1}]), async (req, res) => {
+router.post('/', uploadGallery.fields([{ name: 'ktp', maxCount: 1 }, { name: 'sim', maxCount: 1 }]), async (req, res) => {
     try {
         const { body: data } = req;
         const { type, carData: carId, selectedColor: color, selectedAccessory: accessory, KTPName: name, noKtp, PhoneNumber: phoneNumber, email, provincies: provinceId, city: cityId, fullAddress: address, area: closestDealer, dealer: selectedDealer } = data;
@@ -41,29 +41,34 @@ router.post('/', uploadGallery.fields([{name: 'ktp', maxCount: 1}, {name: 'sim',
         if (type === 'Get Quotation') {
             dealer = await Dealer.findOne({
                 where: {
-                    [Op.or]: [
-                        { provinceId },
-                        { cityId: { [Op.eq]: cityId } }
-                    ]
+                    id: selectedDealer
                 }
             });
-            province = await Province.findOne({ where: { id: provinceId } });
-            city = await City.findOne({ where: { id: cityId, provinceId } });
+            province = await Province.findOne({ where: { id: dealer.provinceId } });
+            city = await City.findOne({
+                where: {
+                    provinceId: province.id, 
+                    name: {
+                        [Op.like]: `%${cityId}%`
+                    }
+                }
+            });
+            console.log({ province, city, dealer })
         }
-        if(type === 'Test Drive') {
+        if (type === 'Test Drive') {
             province = await Province.findOne({ where: { id: provinceId } });
             city = await City.findOne({ where: { id: cityId, provinceId } });
         }
         if (type === 'Test Drive 6 days') {
             ktpFile = req.files.ktp
             simFile = req.files.sim
-            if(!Array.isArray(ktpFile) && !ktpFile[0]) {
+            if (!Array.isArray(ktpFile) && !ktpFile[0]) {
                 return res.send({
                     success: false,
                     message: 'Foto KTP diperlukan'
                 }).status(403)
             }
-            if(!Array.isArray(simFile) && !simFile[0]) {
+            if (!Array.isArray(simFile) && !simFile[0]) {
                 return res.send({
                     success: false,
                     message: 'Foto SIM diperlukan'
@@ -76,10 +81,10 @@ router.post('/', uploadGallery.fields([{name: 'ktp', maxCount: 1}, {name: 'sim',
             case 'Get Quotation':
                 subject = 'E - Quotation Citroen';
                 const carGallery = car.Galleries.find(x => x.id === color);
-                const carGalleryPrice = JSON.parse(carGallery.CarGallery.price).find(x => x.provinceId === provinceId);
+                const carGalleryPrice = JSON.parse(carGallery.CarGallery.price).find(x => x.provinceId === province.id);
                 const carAccessory = JSON.parse(car?.accessory);
                 const selectedAccessory = carAccessory?.find(x => x?.name === accessory?.name);
-                const accessoryPrice = selectedAccessory?.prices?.find(x => x?.provinceId === provinceId);
+                const accessoryPrice = selectedAccessory?.prices?.find(x => x?.provinceId === province.id);
                 const pdfPayload = {
                     status: 'Menunggu Konfirmasi',
                     quotationDate: moment().utcOffset(7).add(3, 'M').format('dddd, Do MMMM YYYY'),
@@ -90,6 +95,7 @@ router.post('/', uploadGallery.fields([{name: 'ktp', maxCount: 1}, {name: 'sim',
                         address,
                         province: province.name,
                         city: city.name,
+                        dealer: dealer
                     },
                     orderQuantity: 1,
                     vehicle: {
@@ -103,7 +109,7 @@ router.post('/', uploadGallery.fields([{name: 'ktp', maxCount: 1}, {name: 'sim',
                         total: carGalleryPrice.price + (accessoryPrice?.price || 0),
                         image: `https://api.citroen-info.id/${carGallery.path.split('public/')[1]}`
                     }
-                }; 
+                };
                 text = `Hallo, ${name}. \n\n We're excited to have you get started with Citroën! \n Pada email ini kami lampirkan e-Quotation untuk mobil Citroën Anda. Silahkan tunjukkan kode QR atau Nomor Seri di bawah ini kepada salah satu staff Citroën di sekitar Anda atau Anda dapat mendatangi Dealer resmi Citroën untuk melanjutkan proses pemesanan Anda! \n\n Jika Anda memiliki pertanyaan, biarkan kami membantu Anda! \n Hubungi kami melalui WhatsApp(${dealer.pic})`;
 
                 // Render EJS to HTML
@@ -131,13 +137,13 @@ router.post('/', uploadGallery.fields([{name: 'ktp', maxCount: 1}, {name: 'sim',
                     content: pdfBuffer
                 };
 
-                await sendMail({ to: email, bcc, subject, text, templateName: 'quotation_email', templateData: {name, number: '+6287844754575'},attachment });
+                await sendMail({ to: email, bcc, subject, text, templateName: 'quotation_email', templateData: { name, number: '+6287844754575' }, attachment });
                 break;
 
             case 'Test Drive':
                 subject = 'Citroen Booking';
                 text = `Hallo, ${name}. \n\n We're excited to have you get started with Citroën! \n Anda telah mengirimkan permintaan untuk test drive mobil Citroën. Kami akan segera menghubungi Anda. \n\n Berikut informasi data anda yang telah kami terima: \n Nama \t: ${name}\n Email \t: ${email}\n Alamat Domisili \t: ${address}\n Telepon \t: ${phoneNumber}\n Model \t: ${car.name.replace('|', '')}\n Permintaan \t: ${type}`;
-                await sendMail({ to: email, bcc, subject, templateName: 'test_drive', templateData: {name, email, province: province.name, city: city.name, phone: phoneNumber, dealer: selectedDealer.name, model: car.name.replace('|', ''), cs: '+6287844754575'}, text });
+                await sendMail({ to: email, bcc, subject, templateName: 'test_drive', templateData: { name, email, province: province.name, city: city.name, phone: phoneNumber, dealer: selectedDealer.name, model: car.name.replace('|', ''), cs: '+6287844754575' }, text });
                 break;
             case 'Test Drive 6 days':
                 const ktpFileUrl = await uploadToDrive(ktpFile[0].path, ktpFile[0].originalname, 'ktp');
@@ -157,19 +163,19 @@ router.post('/', uploadGallery.fields([{name: 'ktp', maxCount: 1}, {name: 'sim',
                     ktpFileUrl,                             // Link Foto KTP
                     `=IMAGE("${simFileUrl}", 1)`,           // Foto Sim
                     simFileUrl,                             // Link Foto Sim
-                  ];
+                ];
                 const range = 'Sheet1!A:M'; // Adjust the range as needed
 
                 const sheets = google.sheets({ version: 'v4', auth });
-                
+
                 await sheets.spreadsheets.values.append({
                     spreadsheetId,
                     range,
                     valueInputOption: 'USER_ENTERED',
                     resource: {
-                      values: [spreadsheetData],
+                        values: [spreadsheetData],
                     },
-                  });
+                });
                 const ktpFullPath = path.join(path.resolve(__dirname, '../../'), ktpFile[0].path)
                 const simFullPath = path.join(path.resolve(__dirname, '../../'), simFile[0].path)
                 fs.access(ktpFullPath)
@@ -192,7 +198,7 @@ router.post('/', uploadGallery.fields([{name: 'ktp', maxCount: 1}, {name: 'sim',
                     .catch((err) => {
                         console.error(`Error while trying to unlink the file at path: ${simFullPath}`, err);
                     });
-                
+
                 break
         }
 
