@@ -81,7 +81,6 @@ router.post('/', uploadGallery.fields([{ name: 'ktp', maxCount: 1 }, { name: 'si
                 subject = 'E - Quotation Citroen';
                 const carGallery = car.Galleries.find(x => x.id === color);
                 const carGalleryPrice = JSON.parse(carGallery.CarGallery.price).find(x => x.provinceId === province.id);
-                console.log({province, carGallery: carGallery.CarGallery, carGalleryPrice})
                 const carAccessory = JSON.parse(car?.accessory);
                 const selectedAccessory = carAccessory?.find(x => x?.name === accessory?.name);
                 const accessoryPrice = selectedAccessory?.prices?.find(x => x?.provinceId === province.id);
@@ -102,11 +101,11 @@ router.post('/', uploadGallery.fields([{ name: 'ktp', maxCount: 1 }, { name: 'si
                         id: car.id,
                         name: car.name.replace('|', ''),
                         color: carGallery.name,
-                        price: carGalleryPrice.price,
+                        price: (carGalleryPrice?.price || 0),
                         option: selectedAccessory?.name,
                         optionDesc: selectedAccessory?.desc,
                         optionPrice: accessoryPrice?.price || 0,
-                        total: carGalleryPrice.price + (accessoryPrice?.price || 0),
+                        total: (carGalleryPrice?.price || 0) + (accessoryPrice?.price || 0),
                         image: `https://api.citroen-info.id/${carGallery.path.split('public/')[1]}`
                     }
                 };
