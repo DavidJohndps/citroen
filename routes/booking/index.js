@@ -81,7 +81,7 @@ router.post('/', uploadGallery.fields([{ name: 'ktp', maxCount: 1 }, { name: 'si
                 subject = 'E - Quotation Citroen';
                 const carGallery = car.Galleries.find(x => x.id === color);
                 const carGalleryPrice = JSON.parse(carGallery.CarGallery.price).find(x => x.provinceId === province.id);
-                console.log({carGallery: carGallery.CarGallery, carGalleryPrice})
+                console.log({province, carGallery: carGallery.CarGallery, carGalleryPrice})
                 const carAccessory = JSON.parse(car?.accessory);
                 const selectedAccessory = carAccessory?.find(x => x?.name === accessory?.name);
                 const accessoryPrice = selectedAccessory?.prices?.find(x => x?.provinceId === province.id);
