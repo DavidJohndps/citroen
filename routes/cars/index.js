@@ -1,11 +1,11 @@
-const {Router} = require('express')
+const { Router } = require('express')
 const router = Router();
 const path = require('path')
 const fs = require('fs').promises;
 
-const {authenticate, uploadGallery, upload} = require('../../middleware')
+const { authenticate, uploadGallery, upload } = require('../../middleware')
 
-const {Car, CarGallery, CarService, Gallery, Province} = require('../../models');
+const { Car, CarGallery, CarService, Gallery, Province } = require('../../models');
 const { Op } = require('sequelize');
 const sequelize = require('sequelize')
 
@@ -33,13 +33,13 @@ const isValid = (string) => {
 //     // Convert arrays to Sets for easier comparison
 //     const originalSet = new Set(originalArray);
 //     const newSet = new Set(newArray);
-  
+
 //     // Find missing elements (elements in originalArray but not in newArray)
 //     const missingElements = [...originalSet].filter(item => !newSet.has(item));
-  
+
 //     // Find added elements (elements in newArray but not in originalArray)
 //     const addedElements = [...newSet].filter(item => !originalSet.has(item));
-  
+
 //     return {
 //       missingElements,
 //       addedElements
@@ -48,17 +48,17 @@ const isValid = (string) => {
 
 router.get('/', async (req, res) => {
     try {
-        
-        const {query: {limit, offset, id, name, slug, ...rest}} = req
+
+        const { query: { limit, offset, id, name, slug, ...rest } } = req
 
         const payload = {
             offset: parseInt(offset) || 0,
         }
-        if(parseInt(limit) && !isNaN(limit)) {
+        if (parseInt(limit) && !isNaN(limit)) {
             payload.limit = parseInt(limit) || 10
         }
-        if (id) payload.where = {id}
-        if (slug) payload.where = {slug}
+        if (id) payload.where = { id }
+        if (slug) payload.where = { slug }
         if (name) payload.where = {
             name: {
                 [Op.like]: `%${name}%`
@@ -70,23 +70,23 @@ router.get('/', async (req, res) => {
             include: [
                 // Car prices in each region
                 {
-                  model: Gallery,
-                  attributes: ['id', 'name', 'path'],
-                  through: {
-                    model: CarGallery,
-                    attributes: ['type', 'price', 'cityPrice']
-                  },
+                    model: Gallery,
+                    attributes: ['id', 'name', 'path'],
+                    through: {
+                        model: CarGallery,
+                        attributes: ['type', 'price', 'cityPrice']
+                    },
                 },
-              ],
+            ],
             order: [['highlight', 'DESC']],
         });
-    
+
         return res.send({
             success: true,
             data
         }).status(200);
     } catch (error) {
-        console.log({error})
+        console.log({ error })
         return res.send({
             success: false,
             message: error.message
@@ -94,11 +94,11 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 1}, {name: 'colorImg'}]), async (req, res) => {
+router.post('/add', authenticate, uploadGallery.fields([{ name: 'img', maxCount: 1 }, { name: 'colorImg' }]), async (req, res) => {
     // const transaction = await sequelize.Transaction()
     try {
-        const {body: data, user, files: {img: [file], colorImg: files}} = req
-        const {colors, accessory, ...rest} = data
+        const { body: data, user, files: { img: [file], colorImg: files } } = req
+        const { colors, accessory, ...rest } = data
 
         if (user.role !== '0') {
             return res.send({
@@ -107,7 +107,7 @@ router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 
             }).status(401);
         }
 
-        if(!file) {
+        if (!file) {
             return res.send({
                 success: false,
                 message: 'Foto mobil perlu ditambahkan'
@@ -121,27 +121,27 @@ router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 
             }).status(403);
         }
 
-        if(!accessory) {
+        if (!accessory) {
             return res.send({
                 success: false,
                 message: 'Harga Accessory per Region perlu ditambahkan'
             })
         }
 
-        if(!isValid(accessory)) {
+        if (!isValid(accessory)) {
             return res.send({
                 success: false,
                 message: "Format Harga Accessory per Region tidak sesuai"
             })
         }
-        if(!colors) {
+        if (!colors) {
             return res.send({
                 success: false,
                 message: 'Harga Warna per Region perlu ditambahkan'
             })
         }
 
-        if(!isValid(colors)) {
+        if (!isValid(colors)) {
             return res.send({
                 success: false,
                 message: "Format Harga Warna per Region tidak sesuai"
@@ -160,7 +160,7 @@ router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 
         const parsedAccessory = JSON.parse(accessory)
         const combined = [...parsedColors, ...parsedAccessory]
         const provinces = combined.reduce((acc, item) => {
-            const {prices} = item
+            const { prices } = item
             prices.map(x => {
                 if (!acc.includes(x.provinceId)) acc.push(x.provinceId)
             })
@@ -168,7 +168,7 @@ router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 
         }, [])
 
         const provinceData = await Province.findAll({ where: { id: { [Op.in]: provinces } } })
-        if(!provinceData) {
+        if (!provinceData) {
             return res.send({
                 success: false,
                 message: 'Salah Satu Provinsi tidak ditemukan'
@@ -182,8 +182,8 @@ router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 
 
         // verify all parsed json have valid property
         const carGalleryPayload = []
-        const mappedColor = parsedColors.map( async (pricing, index) => {
-            const {name, category, prices, cityPrices} = pricing
+        const mappedColor = parsedColors.map(async (pricing, index) => {
+            const { name, category, prices, cityPrices } = pricing
             const mapped = prices.map(x => {
                 if (!x.provinceId) {
                     return res.send({
@@ -213,8 +213,8 @@ router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 
                 return x
             })
             const path = files[index].path
-            const gallery = await Gallery.create({name, path});
-            carGalleryPayload.push({carId: null, galleryId: gallery.id, type: category, price: prices, cityPrice: mappedCity})
+            const gallery = await Gallery.create({ name, path });
+            carGalleryPayload.push({ carId: null, galleryId: gallery.id, type: category, price: prices, cityPrice: mappedCity })
             // await CarGallery.create({carId: car.id, galleryId: gallery.id, type: category}, {transaction})
             return {
                 name,
@@ -224,7 +224,7 @@ router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 
             }
         })
         const mappedAccessory = parsedAccessory.map(accessory => {
-            const {name, desc, prices} = accessory
+            const { name, desc, prices } = accessory
             const maped = prices.map(x => {
                 const province = provinceMap[x.provinceId]
                 if (!x.provinceId) {
@@ -261,7 +261,7 @@ router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 
         // Were gonna handle the car and its option, and accessory first
         const car = await Car.create(payload);
         await CarGallery.bulkCreate(carGalleryPayload.map(x => {
-            const {carId, ...rest} = x
+            const { carId, ...rest } = x
             return {
                 ...rest,
                 carId: car.id
@@ -284,10 +284,10 @@ router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 
     }
 })
 
-router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCount: 1}, {name: 'colorImg'}, {name: 'oldImg'}]), async (req, res) => {
+router.patch('/change', authenticate, uploadGallery.fields([{ name: 'img', maxCount: 1 }, { name: 'colorImg' }, { name: 'oldImg' }]), async (req, res) => {
     try {
-        const {body: data, user, files: {img: file, colorImg: files, oldImg: updateFiles}} = req
-        const {id, newColors, colors, accessory, ...rest} = data
+        const { body: data, user, files: { img: file, colorImg: files, oldImg: updateFiles } } = req
+        const { id, newColors, colors, accessory, ...rest } = data
 
         // Catcher
         if (user.role !== '0') {
@@ -297,7 +297,7 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
             }).status(401);
         }
 
-        if(!id) {
+        if (!id) {
             return res.send({
                 success: false,
                 message: 'ID mobil tidak ditemukan'
@@ -331,7 +331,7 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
                 message: 'Jumlah Foto warna mobil dan Harga warna mobil tidak sesuai'
             }).status(403);
         }
-        if(updateFiles && updateFiles.length !== parsedColors.filter(x =>!!x.img?.exist).length)
+        if (updateFiles && updateFiles.length !== parsedColors.filter(x => !!x.img?.exist).length)
             return res.send({
                 success: false,
                 message: 'Jumlah Foto warna mobil yang dirubah dan Harga warna mobil tidak sesuai'
@@ -344,7 +344,7 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
             }
         })
 
-        if(!carData) {
+        if (!carData) {
             return res.send({
                 success: false,
                 message: 'Mobil tidak ditemukan'
@@ -353,7 +353,7 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
 
         const combined = [...parsedColors, ...parsedAccessory]
         const provinces = combined.reduce((acc, item) => {
-            const {prices} = item
+            const { prices } = item
             prices.map(x => {
                 if (!acc.includes(x.provinceId)) acc.push(x.provinceId)
             })
@@ -361,7 +361,7 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
         }, [])
 
         const provinceData = await Province.findAll({ where: { id: { [Op.in]: provinces } } })
-        if(!provinceData) {
+        if (!provinceData) {
             return res.send({
                 success: false,
                 message: 'Salah Satu Provinsi tidak ditemukan'
@@ -372,19 +372,19 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
             if (!acc[key]) acc[key] = item
             return acc
         }, {})
-        
+
         const carGalleryIds = parsedColors.reduce((acc, item) => {
-            const {id: galleryId} = item
+            const { id: galleryId } = item
             acc.push(galleryId)
             return acc
         }, [])
-        const galleryData = await Gallery.findAll({where: { id: { [Op.in]: carGalleryIds }}})
+        const galleryData = await Gallery.findAll({ where: { id: { [Op.in]: carGalleryIds } } })
         const galleryMapped = galleryData.reduce((acc, item) => {
             const key = item.id
             if (!acc[key]) acc[key] = item
             return acc
         }, {})
-        const carGalleryData = await CarGallery.findAll({where: { galleryId: { [Op.in]: carGalleryIds }, carId: id}})
+        const carGalleryData = await CarGallery.findAll({ where: { galleryId: { [Op.in]: carGalleryIds }, carId: id } })
         const carGalleryMapped = carGalleryData.reduce((acc, item) => {
             const key = item.galleryId
             if (!acc[key]) acc[key] = item
@@ -393,8 +393,9 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
 
         // updating saved color data
         parsedColors.map(async pricing => {
-            const {id: galleryId, name, category, prices, cityPrices, img: {exist, name: fileName}} = pricing
-            const mapped = prices.map(x => {
+            const { id: galleryId, name, category, prices, cityPrices, img: { exist, name: fileName } } = pricing
+            const mapped = []
+            for (const x of prices) {
                 if (!x.provinceId) {
                     return res.send({
                         success: false,
@@ -408,26 +409,27 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
                     }).status(500)
                 }
                 const province = provinceMap[x.provinceId].name
-                return {
+                mapped.push({
                     ...x,
                     provinceName: province
-                }
-            })
-            const mappedCity = cityPrices.map(x => {
+                })
+            }
+            const mappedCity = [];
+            for (const x of cityPrices) {
                 if (!x.city) {
-                    return res.send({
+                    return res.status(500).send({
                         success: false,
                         message: 'Format harga tidak sesuai, tidak ada Kota'
-                    }).status(500)
+                    });
                 }
                 if (!x.price) {
-                    return res.send({
+                    return res.status(500).send({
                         success: false,
                         message: 'Format harga tidak sesuai, tidak ada harga'
-                    }).status(500)
+                    });
                 }
-                return x
-            })
+                mappedCity.push(x);
+            }
             if (!galleryId || !galleryMapped[galleryId]) {
                 return res.send({
                     success: false,
@@ -446,7 +448,7 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
             const carGallery = carGalleryMapped[galleryId]
             if (exist) {
                 const newPath = updateFiles.find(x => x.originalname === fileName)
-                if(newPath) {
+                if (newPath) {
                     const gallery = galleryMapped[galleryId]
                     const fullPath = path.join(path.resolve(__dirname, '../../'), gallery.path); // Construct the full file path
                     fs.access(fullPath)
@@ -467,16 +469,18 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
                     id: galleryId
                 }
             })
-            console.log({mappedCity})
-            await CarGallery.update({type: category, price: mapped, cityPrice: mappedCity}, {where: {
-                id: carGallery.id
-            }})
+            console.log({ mappedCity })
+            await CarGallery.update({ type: category, price: mapped, cityPrice: mappedCity }, {
+                where: {
+                    id: carGallery.id
+                }
+            })
         })
-        
+
         // creating new color
         const carGalleryPayload = []
-        const mappedColor = parsedNewColors.map( async pricing => {
-            const {name, category, prices, cityPrices, img: {exist, fileName}} = pricing
+        const mappedColor = parsedNewColors.map(async pricing => {
+            const { name, category, prices, cityPrices, img: { exist, fileName } } = pricing
             const mapped = prices.map(x => {
                 if (!x.provinceId) {
                     return res.send({
@@ -508,8 +512,8 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
             if (exist) {
                 const path = files.find(x => x.originalName === fileName)
                 if (path) {
-                    const gallery = await Gallery.create({name, path: path.path});
-                    carGalleryPayload.push({carId: null, galleryId: gallery.id, type: category, price: prices, cityPrice: mappedCity})
+                    const gallery = await Gallery.create({ name, path: path.path });
+                    carGalleryPayload.push({ carId: null, galleryId: gallery.id, type: category, price: prices, cityPrice: mappedCity })
                 }
             }
             return {
@@ -520,7 +524,7 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
             }
         })
         const mappedAccessory = parsedAccessory.map(accessory => {
-            const {name, desc, prices} = accessory
+            const { name, desc, prices } = accessory
             const maped = prices.map(x => {
                 const province = provinceMap[x.provinceId]
                 if (!x.provinceId) {
@@ -552,7 +556,7 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
             ...rest,
             accessory: mappedAccessory
         }
-        
+
         if (Array.isArray(file) && file[0]) {
             const fullPath = path.join(path.resolve(__dirname, '../../'), carData.img); // Construct the full file path
             fs.access(fullPath)
@@ -568,9 +572,9 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
             payload.img = file[0].path
         }
 
-        await Car.update({...payload}, {where: {id}});
+        await Car.update({ ...payload }, { where: { id } });
         await CarGallery.bulkCreate(carGalleryPayload.map(x => {
-            const {carId, ...rest} = x
+            const { carId, ...rest } = x
             return {
                 ...rest,
                 carId: id
@@ -582,7 +586,7 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
             message: 'Mobil berhasil dirubah'
         })
     } catch (error) {
-        console.log({error})
+        console.log({ error })
         return res.send({
             success: false,
             message: error.message
@@ -590,8 +594,8 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
     }
 })
 
-router.patch('/deleteGallery', authenticate, async(req, res) => {
-    const {body: {deleteColors, id}, user} = req
+router.patch('/deleteGallery', authenticate, async (req, res) => {
+    const { body: { deleteColors, id }, user } = req
     try {
         if (user.role !== '0') {
             return res.send({
@@ -600,13 +604,13 @@ router.patch('/deleteGallery', authenticate, async(req, res) => {
             }).status(401);
         }
 
-        if(!id) {
+        if (!id) {
             return res.send({
                 success: false,
                 message: 'ID mobil tidak ditemukan'
             })
         }
-        if(deleteColors.length === 0) {
+        if (deleteColors.length === 0) {
             return res.send({
                 success: false,
                 message: 'Gallery mobil tersebut tidak ditemukan'
@@ -631,7 +635,7 @@ router.patch('/deleteGallery', authenticate, async(req, res) => {
         }
 
         deleteColors.map(async (x) => {
-            
+
             const gallery = car.Galleries.find(y => y.id === x)
             const fullPath = path.join(path.resolve(__dirname, '../../'), gallery.path); // Construct the full file path
             fs.access(fullPath)
@@ -666,8 +670,8 @@ router.patch('/deleteGallery', authenticate, async(req, res) => {
                     model: Gallery,
                     attributes: ['id', 'name', 'path'],
                     through: {
-                      model: CarGallery,
-                      attributes: ['type', 'price']
+                        model: CarGallery,
+                        attributes: ['type', 'price']
                     },
                 },
             ]
@@ -689,12 +693,12 @@ router.patch('/deleteGallery', authenticate, async(req, res) => {
 
 router.delete('/remove', authenticate, async (req, res) => {
     try {
-        const {body: data} = req
+        const { body: data } = req
         const { id } = data
 
         console.log(req)
 
-        if(!id) {
+        if (!id) {
             return res.send({
                 success: false,
                 message: 'ID mobil tidak ditemukan'
@@ -718,7 +722,7 @@ router.delete('/remove', authenticate, async (req, res) => {
                 message: 'Mobil Tidak Ditemukan'
             })
         }
-        
+
         const fullPath = path.join(path.resolve(__dirname, '../../'), carData.img); // Construct the full file path
         fs.access(fullPath)
             .then(() => {
@@ -734,7 +738,7 @@ router.delete('/remove', authenticate, async (req, res) => {
         // console.log({carData})
         const gallery = carData.Galleries
 
-        gallery.map( async (x) => {
+        gallery.map(async (x) => {
             const galleryPath = path.join(path.resolve(__dirname, '../../'), x.path); // Construct the full file path
             fs.access(galleryPath)
                 .then(() => {
@@ -747,14 +751,14 @@ router.delete('/remove', authenticate, async (req, res) => {
                     console.error(`Error while trying to unlink the file at path: ${galleryPath}`, err);
                 });
 
-            await CarGallery.destroy({where: {id: x.CarGallery.id}})
-            await Gallery.destroy({where: {id: x.id}})
+            await CarGallery.destroy({ where: { id: x.CarGallery.id } })
+            await Gallery.destroy({ where: { id: x.id } })
         })
 
-        await CarService.destroy({where: {carId: id}});
+        await CarService.destroy({ where: { carId: id } });
 
         await Car.destroy({
-            where:{
+            where: {
                 id
             }
         })
@@ -764,7 +768,7 @@ router.delete('/remove', authenticate, async (req, res) => {
             message: 'Mobil berhasil dihapus'
         })
     } catch (error) {
-        console.log({error})
+        console.log({ error })
         return res.send({
             success: false,
             message: error.message
