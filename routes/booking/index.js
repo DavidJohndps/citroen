@@ -29,7 +29,7 @@ router.post('/', uploadGallery.fields([{ name: 'ktp', maxCount: 1 }, { name: 'si
                     attributes: ['id', 'name', 'path'],
                     through: {
                         model: CarGallery,
-                        attributes: ['id', 'type', 'price']
+                        attributes: ['id', 'type', 'price', 'cityPrice']
                     }
                 }
             ]
@@ -81,6 +81,11 @@ router.post('/', uploadGallery.fields([{ name: 'ktp', maxCount: 1 }, { name: 'si
                 subject = 'E - Quotation Citroen';
                 const carGallery = car.Galleries.find(x => x.id === color);
                 const carGalleryPrice = JSON.parse(carGallery.CarGallery.price).find(x => x.provinceId === province.id);
+                // const carGalleryPrice = JSON.parse(carGallery.CarGallery.cityPrice).find(x => {
+                //     const exist = new RegExp(x.city, 'i').test(city.name || '');
+                //     console.log(`Checking city match for ${x.city} against ${city.name}: ${exist}`);
+                //     return exist;
+                // });
                 const carAccessory = JSON.parse(car?.accessory);
                 const selectedAccessory = carAccessory?.find(x => x?.name === accessory?.name);
                 const accessoryPrice = selectedAccessory?.prices?.find(x => x?.provinceId === province.id);
@@ -102,8 +107,8 @@ router.post('/', uploadGallery.fields([{ name: 'ktp', maxCount: 1 }, { name: 'si
                         name: car.name.replace('|', ''),
                         color: carGallery.name,
                         price: (carGalleryPrice?.price || 0),
-                        option: selectedAccessory?.name,
-                        optionDesc: selectedAccessory?.desc,
+                        option: selectedAccessory?.name || 'Tanpa Aksesories',
+                        optionDesc: selectedAccessory?.desc || 'No Accessory',
                         optionPrice: accessoryPrice?.price || 0,
                         total: (carGalleryPrice?.price || 0) + (accessoryPrice?.price || 0),
                         image: `https://api.citroen-info.id/${carGallery.path.split('public/')[1]}`

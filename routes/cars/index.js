@@ -74,7 +74,7 @@ router.get('/', async (req, res) => {
                   attributes: ['id', 'name', 'path'],
                   through: {
                     model: CarGallery,
-                    attributes: ['type', 'price']
+                    attributes: ['type', 'price', 'cityPrice']
                   },
                 },
               ],
@@ -183,7 +183,7 @@ router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 
         // verify all parsed json have valid property
         const carGalleryPayload = []
         const mappedColor = parsedColors.map( async (pricing, index) => {
-            const {name, category, prices} = pricing
+            const {name, category, prices, cityPrices} = pricing
             const mapped = prices.map(x => {
                 if (!x.provinceId) {
                     return res.send({
@@ -203,13 +203,23 @@ router.post('/add', authenticate, uploadGallery.fields([{name: 'img', maxCount: 
                     provinceName: province
                 }
             })
+            const mappedCity = cityPrices.map(x => {
+                if (!x.price) {
+                    return res.send({
+                        success: false,
+                        message: 'Format harga tidak sesuai, tidak ada harga'
+                    }).status(500)
+                }
+                return x
+            })
             const path = files[index].path
             const gallery = await Gallery.create({name, path});
-            carGalleryPayload.push({carId: null, galleryId: gallery.id, type: category, price: prices})
+            carGalleryPayload.push({carId: null, galleryId: gallery.id, type: category, price: prices, cityPrice: mappedCity})
             // await CarGallery.create({carId: car.id, galleryId: gallery.id, type: category}, {transaction})
             return {
                 name,
                 prices: mapped,
+                cityPrices: mappedCity,
                 category
             }
         })
@@ -383,7 +393,7 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
 
         // updating saved color data
         parsedColors.map(async pricing => {
-            const {id: galleryId, name, category, prices, img: {exist, name: fileName}} = pricing
+            const {id: galleryId, name, category, prices, cityPrices, img: {exist, name: fileName}} = pricing
             const mapped = prices.map(x => {
                 if (!x.provinceId) {
                     return res.send({
@@ -402,6 +412,21 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
                     ...x,
                     provinceName: province
                 }
+            })
+            const mappedCity = cityPrices.map(x => {
+                if (!x.city) {
+                    return res.send({
+                        success: false,
+                        message: 'Format harga tidak sesuai, tidak ada Kota'
+                    }).status(500)
+                }
+                if (!x.price) {
+                    return res.send({
+                        success: false,
+                        message: 'Format harga tidak sesuai, tidak ada harga'
+                    }).status(500)
+                }
+                return x
             })
             if (!galleryId || !galleryMapped[galleryId]) {
                 return res.send({
@@ -442,7 +467,8 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
                     id: galleryId
                 }
             })
-            await CarGallery.update({type: category, price: mapped}, {where: {
+            console.log({mappedCity})
+            await CarGallery.update({type: category, price: mapped, cityPrice: mappedCity}, {where: {
                 id: carGallery.id
             }})
         })
@@ -450,7 +476,7 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
         // creating new color
         const carGalleryPayload = []
         const mappedColor = parsedNewColors.map( async pricing => {
-            const {name, category, prices, img: {exist, fileName}} = pricing
+            const {name, category, prices, cityPrices, img: {exist, fileName}} = pricing
             const mapped = prices.map(x => {
                 if (!x.provinceId) {
                     return res.send({
@@ -470,16 +496,26 @@ router.patch('/change', authenticate, uploadGallery.fields([{name: 'img', maxCou
                     provinceName: province
                 }
             })
+            const mappedCity = cityPrices.map(x => {
+                if (!x.price) {
+                    return res.send({
+                        success: false,
+                        message: 'Format harga tidak sesuai, tidak ada harga'
+                    }).status(500)
+                }
+                return x
+            })
             if (exist) {
                 const path = files.find(x => x.originalName === fileName)
                 if (path) {
                     const gallery = await Gallery.create({name, path: path.path});
-                    carGalleryPayload.push({carId: null, galleryId: gallery.id, type: category, price: prices})
+                    carGalleryPayload.push({carId: null, galleryId: gallery.id, type: category, price: prices, cityPrice: mappedCity})
                 }
             }
             return {
                 name,
                 prices: mapped,
+                cityPrice: mappedCity,
                 category
             }
         })

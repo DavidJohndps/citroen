@@ -47,7 +47,11 @@ module.exports = (sequelize, DataTypes) => {
     price: {
       type: DataTypes.JSON,
       allowNull: false
-    }
+    },
+    cityPrice: {
+      type: DataTypes.JSON,
+      allowNull: true
+    },
   }, {
     sequelize,
     modelName: 'CarGallery',
