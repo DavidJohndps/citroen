@@ -392,7 +392,7 @@ router.patch('/change', authenticate, uploadGallery.fields([{ name: 'img', maxCo
         }, {})
 
         // updating saved color data
-        parsedColors.map(async pricing => {
+        for (const pricing of parsedColors) {
             const { id: galleryId, name, category, prices, cityPrices, img: { exist, name: fileName } } = pricing
             const mapped = []
             for (const x of prices) {
@@ -475,54 +475,114 @@ router.patch('/change', authenticate, uploadGallery.fields([{ name: 'img', maxCo
                     id: carGallery.id
                 }
             })
-        })
+        }
 
         // creating new color
         const carGalleryPayload = []
-        const mappedColor = parsedNewColors.map(async pricing => {
-            const { name, category, prices, cityPrices, img: { exist, fileName } } = pricing
-            const mapped = prices.map(x => {
+        // const mappedColor = parsedNewColors.map(async pricing => {
+        //     const { name, category, prices, cityPrices, img: { exist, fileName } } = pricing
+        //     const mapped = prices.map(x => {
+        //         if (!x.provinceId) {
+        //             return res.send({
+        //                 success: false,
+        //                 message: 'Format harga tidak sesuai, tidak ada provinsi'
+        //             }).status(500)
+        //         }
+        //         if (!x.price) {
+        //             return res.send({
+        //                 success: false,
+        //                 message: 'Format harga tidak sesuai, tidak ada harga'
+        //             }).status(500)
+        //         }
+        //         const province = provinceMap[x.provinceId].name
+        //         return {
+        //             ...x,
+        //             provinceName: province
+        //         }
+        //     })
+        //     const mappedCity = cityPrices.map(x => {
+        //         if (!x.price) {
+        //             return res.send({
+        //                 success: false,
+        //                 message: 'Format harga tidak sesuai, tidak ada harga'
+        //             }).status(500)
+        //         }
+        //         return x
+        //     })
+        //     if (exist) {
+        //         const path = files.find(x => x.originalName === fileName)
+        //         if (path) {
+        //             const gallery = await Gallery.create({ name, path: path.path });
+        //             carGalleryPayload.push({ carId: null, galleryId: gallery.id, type: category, price: prices, cityPrice: mappedCity })
+        //         }
+        //     }
+        //     return {
+        //         name,
+        //         prices: mapped,
+        //         cityPrice: mappedCity,
+        //         category
+        //     }
+        // })
+        const mappedColor = [];
+        for (const pricing of parsedNewColors) {
+            const { name, category, prices, cityPrices, img: { exist, fileName } } = pricing;
+            const mapped = [];
+
+            // Loop through prices
+            for (const x of prices) {
                 if (!x.provinceId) {
                     return res.send({
                         success: false,
-                        message: 'Format harga tidak sesuai, tidak ada provinsi'
-                    }).status(500)
+                        message: 'Format harga tidak sesuai, tidak ada provinsi',
+                    }).status(500);
                 }
                 if (!x.price) {
                     return res.send({
                         success: false,
-                        message: 'Format harga tidak sesuai, tidak ada harga'
-                    }).status(500)
+                        message: 'Format harga tidak sesuai, tidak ada harga',
+                    }).status(500);
                 }
-                const province = provinceMap[x.provinceId].name
-                return {
+                const province = provinceMap[x.provinceId].name;
+                mapped.push({
                     ...x,
-                    provinceName: province
-                }
-            })
-            const mappedCity = cityPrices.map(x => {
+                    provinceName: province,
+                });
+            }
+
+            // Loop through cityPrices
+            const mappedCity = [];
+            for (const x of cityPrices) {
                 if (!x.price) {
                     return res.send({
                         success: false,
-                        message: 'Format harga tidak sesuai, tidak ada harga'
-                    }).status(500)
+                        message: 'Format harga tidak sesuai, tidak ada harga',
+                    }).status(500);
                 }
-                return x
-            })
+                mappedCity.push(x);
+            }
+
+            // Check if image exists and add to payload
             if (exist) {
-                const path = files.find(x => x.originalName === fileName)
+                const path = files.find(x => x.originalName === fileName);
                 if (path) {
                     const gallery = await Gallery.create({ name, path: path.path });
-                    carGalleryPayload.push({ carId: null, galleryId: gallery.id, type: category, price: prices, cityPrice: mappedCity })
+                    carGalleryPayload.push({
+                        carId: null,
+                        galleryId: gallery.id,
+                        type: category,
+                        price: prices,
+                        cityPrice: mappedCity
+                    });
                 }
             }
-            return {
+
+            mappedColor.push({
                 name,
                 prices: mapped,
                 cityPrice: mappedCity,
-                category
-            }
-        })
+                category,
+            });
+        }
         const mappedAccessory = []
         for (const accessory of parsedAccessory) {
             const { name, desc, prices } = accessory
