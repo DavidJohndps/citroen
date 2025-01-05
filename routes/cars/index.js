@@ -523,9 +523,11 @@ router.patch('/change', authenticate, uploadGallery.fields([{ name: 'img', maxCo
                 category
             }
         })
-        const mappedAccessory = parsedAccessory.map(accessory => {
+        const mappedAccessory = []
+        for (const accessory of parsedAccessory) {
             const { name, desc, prices } = accessory
-            const maped = prices.map(x => {
+            const mapped = []
+            for (const x of prices) {
                 const province = provinceMap[x.provinceId]
                 if (!x.provinceId) {
                     return res.send({
@@ -539,18 +541,18 @@ router.patch('/change', authenticate, uploadGallery.fields([{ name: 'img', maxCo
                         message: 'Format harga tidak sesuai, tidak ada harga'
                     }).status(500)
                 }
-                return {
+                mapped.push({
                     provinceId: x.provinceId,
                     provinceName: province.name,
                     price: x.price
-                }
-            })
-            return {
+                })
+            }
+            mappedAccessory.push({
                 name,
                 desc,
-                prices: maped
-            }
-        })
+                prices: mapped
+            })
+        }
 
         const payload = {
             ...rest,
