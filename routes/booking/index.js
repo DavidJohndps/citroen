@@ -80,12 +80,12 @@ router.post('/', uploadGallery.fields([{ name: 'ktp', maxCount: 1 }, { name: 'si
             case 'Get Quotation':
                 subject = 'E - Quotation Citroen';
                 const carGallery = car.Galleries.find(x => x.id === color);
-                const carGalleryPrice = JSON.parse(carGallery.CarGallery.price).find(x => x.provinceId === province.id);
-                // const carGalleryPrice = JSON.parse(carGallery.CarGallery.cityPrice).find(x => {
-                //     const exist = new RegExp(x.city, 'i').test(city.name || '');
-                //     console.log(`Checking city match for ${x.city} against ${city.name}: ${exist}`);
-                //     return exist;
-                // });
+                // const carGalleryPrice = JSON.parse(carGallery.CarGallery.price).find(x => x.provinceId === province.id);
+                const carGalleryPrice = JSON.parse(carGallery.CarGallery.cityPrice).find(x => {
+                    const exist = new RegExp(x.city, 'i').test(city.name || '');
+                    console.log(`Checking city match for ${x.city} against ${city.name}: ${exist}`);
+                    return exist;
+                });
                 const carAccessory = JSON.parse(car?.accessory);
                 const selectedAccessory = carAccessory?.find(x => x?.name === accessory?.name);
                 const accessoryPrice = selectedAccessory?.prices?.find(x => x?.provinceId === province.id);
