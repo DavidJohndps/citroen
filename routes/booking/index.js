@@ -17,9 +17,10 @@ moment.locale('id');
 router.post('/', uploadGallery.fields([{ name: 'ktp', maxCount: 1 }, { name: 'sim', maxCount: 1 }]), async (req, res) => {
     try {
         const { body: data } = req;
-        const { type, carData: carId, selectedColor: color, selectedAccessory: accessory, KTPName: name, noKtp, PhoneNumber: phoneNumber, email, provincies: provinceId, city: cityId, fullAddress: address, area: closestDealer, dealer: selectedDealer } = data;
+        const { type, carData: carId, selectedColor: color, selectedAccessory: accessory, KTPName: name, noKtp, PhoneNumber: phoneNumber, email, provincies: provinceId, city: cityId, fullAddress: address, code: promoCode, area: closestDealer, dealer: selectedDealer } = data;
 
         const spreadsheetId = process.env.SHEET_ID
+        const spreadsheetLeadId = process.env.SHEET_LEAD_ID
 
         const car = await Car.findOne({
             where: { id: carId },
@@ -99,7 +100,8 @@ router.post('/', uploadGallery.fields([{ name: 'ktp', maxCount: 1 }, { name: 'si
                         address,
                         province: province.name,
                         city: city.name,
-                        dealer: dealer
+                        dealer: dealer,
+                        promoCode
                     },
                     orderQuantity: 1,
                     vehicle: {
@@ -142,12 +144,54 @@ router.post('/', uploadGallery.fields([{ name: 'ktp', maxCount: 1 }, { name: 'si
                 };
 
                 await sendMail({ to: email, bcc, subject, text, templateName: 'quotation_email', templateData: { name, number: '+6287844754575' }, attachment });
+                const spreadsheetGetQuotationSheetData = [
+                    moment().utcOffset(7).format('M/D/YYYY HH:mm:ss'),   // Timestamp
+                    name,                                   // Nama
+                    phoneNumber.replace(/^0/, '+62'),       // Phone/Whatsapp
+                    email,                                  // Email
+                    address,                                // Alamat Domisili
+                    car.name.replace('|', ''),              // Nama Mobil
+                    promoCode
+                ];
+                const rangeGetQuotation = 'GetQuotation!A:G'; // Adjust the range as needed
+
+                const sheetsGetQuotation = google.sheets({ version: 'v4', auth });
+
+                await sheetsGetQuotation.spreadsheets.values.append({
+                    spreadsheetId: spreadsheetLeadId,
+                    range: rangeGetQuotation,
+                    valueInputOption: 'USER_ENTERED',
+                    resource: {
+                        values: [spreadsheetGetQuotationSheetData],
+                    },
+                });
                 break;
 
             case 'Test Drive':
                 subject = 'Citroen Booking';
-                text = `Hallo, ${name}. \n\n We're excited to have you get started with Citroën! \n Anda telah mengirimkan permintaan untuk test drive mobil Citroën. Kami akan segera menghubungi Anda. \n\n Berikut informasi data anda yang telah kami terima: \n Nama \t: ${name}\n Email \t: ${email}\n Alamat Domisili \t: ${address}\n Telepon \t: ${phoneNumber}\n Model \t: ${car.name.replace('|', '')}\n Permintaan \t: ${type}`;
-                await sendMail({ to: email, bcc, subject, templateName: 'test_drive', templateData: { name, email, province: province.name, city: city.name, phone: phoneNumber, dealer: selectedDealer.name, model: car.name.replace('|', ''), cs: '+6287844754575' }, text });
+                text = `Hallo, ${name}. \n\n We're excited to have you get started with Citroën! \n Anda telah mengirimkan permintaan untuk test drive mobil Citroën. Kami akan segera menghubungi Anda. \n\n Berikut informasi data anda yang telah kami terima: \n Nama \t: ${name}\n Email \t: ${email}\n Alamat Domisili \t: ${address}\n Telepon \t: ${phoneNumber}\n Model \t: ${car.name.replace('|', '')}\n Permintaan \t: ${type}\n Kode Promo \t: ${promoCode}\n`;
+                await sendMail({ to: email, bcc, subject, templateName: 'test_drive', templateData: { name, email, province: province.name, city: city.name, phone: phoneNumber, dealer: selectedDealer.name, model: car.name.replace('|', ''), promoCode , cs: '+6287844754575' }, text });
+                const spreadsheetTestDriveSheetData = [
+                    moment().utcOffset(7).format('M/D/YYYY HH:mm:ss'),   // Timestamp
+                    name,                                   // Nama
+                    phoneNumber.replace(/^0/, '+62'),       // Phone/Whatsapp
+                    email,                                  // Email
+                    address,                                // Alamat Domisili
+                    car.name.replace('|', ''),              // Nama Mobil
+                    promoCode
+                ];
+                const rangeTestDrive = 'TestDrive!A:G'; // Adjust the range as needed
+
+                const sheetsTestDrive = google.sheets({ version: 'v4', auth });
+
+                await sheetsTestDrive.spreadsheets.values.append({
+                    spreadsheetId: spreadsheetLeadId,
+                    range: rangeTestDrive,
+                    valueInputOption: 'USER_ENTERED',
+                    resource: {
+                        values: [spreadsheetTestDriveSheetData],
+                    },
+                });
                 break;
             case 'Test Drive 6 days':
                 const ktpFileUrl = await uploadToDrive(ktpFile[0].path, ktpFile[0].originalname, 'ktp');
@@ -178,6 +222,27 @@ router.post('/', uploadGallery.fields([{ name: 'ktp', maxCount: 1 }, { name: 'si
                     valueInputOption: 'USER_ENTERED',
                     resource: {
                         values: [spreadsheetData],
+                    },
+                });
+                const spreadsheetTestDriveDaysSheetData = [
+                    moment().utcOffset(7).format('M/D/YYYY HH:mm:ss'),   // Timestamp
+                    name,                                   // Nama
+                    phoneNumber.replace(/^0/, '+62'),       // Phone/Whatsapp
+                    email,                                  // Email
+                    address,                                // Alamat Domisili
+                    car.name.replace('|', ''),              // Nama Mobil
+                    promoCode
+                ];
+                const rangeTestDriveDays = 'TestDrive!A:G'; // Adjust the range as needed
+
+                const sheetsTestDriveDays = google.sheets({ version: 'v4', auth });
+
+                await sheetsTestDriveDays.spreadsheets.values.append({
+                    spreadsheetId: spreadsheetLeadId,
+                    range: rangeTestDriveDays,
+                    valueInputOption: 'USER_ENTERED',
+                    resource: {
+                        values: [spreadsheetTestDriveDaysSheetData],
                     },
                 });
                 const ktpFullPath = path.join(path.resolve(__dirname, '../../'), ktpFile[0].path)
